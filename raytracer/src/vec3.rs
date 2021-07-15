@@ -1,4 +1,6 @@
+use crate::camera::{random_double_0_1, random_double_a_b};
 use crate::rtweekend::clamp;
+use std::f32::consts::PI;
 use std::num;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -32,6 +34,42 @@ impl Vec3 {
 
     pub fn squared_length(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
+    }
+}
+
+impl Vec3 {
+    pub fn random_v_0_1() -> Vec3 {
+        Vec3::new(
+            random_double_0_1(),
+            random_double_0_1(),
+            random_double_0_1(),
+        )
+    }
+
+    pub fn random_v_a_b(min: f64, max: f64) -> Vec3 {
+        Vec3::new(
+            random_double_a_b(min, max),
+            random_double_a_b(min, max),
+            random_double_a_b(min, max),
+        )
+    }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        let mut p = Vec3::zero();
+        loop {
+            p = Vec3::random_v_a_b(-1.0, 1.0);
+            if p.squared_length() < 1.0 {
+                break;
+            }
+        }
+        return p;
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        let a = random_double_a_b(0.0, (2.0 * PI) as f64);
+        let z = random_double_a_b(-1.0, 1.0);
+        let r = (1.0 - z * z).sqrt();
+        Vec3::new((a.cos()) * r, (a.sin()) * r, z)
     }
 }
 
@@ -184,6 +222,49 @@ impl Vec3 {
     pub fn dot(self, other: &Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
+    pub fn unit_vector(v: &Vec3) -> Vec3 {
+        let length = v.length();
+        Vec3 {
+            x: v.x / length,
+            y: v.y / length,
+            z: v.z / length,
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut p: Vec3 = Vec3 {
+            x: 0.0,
+            y: 0.0,
+            z: 0.0,
+        };
+        while true {
+            let q = Vec3::new(
+                random_double_a_b(-1.0, 1.0),
+                random_double_a_b(-1.0, 1.0),
+                0.0,
+            );
+            if q.squared_length() < 1.0 {
+                p = q;
+                break;
+            }
+        }
+        p
+    }
+
+    pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+        //反射
+        let pig = n.mul(n.dot(v) * 2.0);
+        v.sub(pig)
+    }
+
+    pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+        //折射
+        let cos_theta = (uv.mul(-1.0)).dot(&n);
+        let r_out_perp = (uv.add(n.mul(cos_theta))).mul(etai_over_etat);
+        let pig = -(((1.0 - r_out_perp.squared_length()).abs()).sqrt());
+        let r_out_parallel = n.mul(pig);
+        r_out_perp.add(r_out_parallel)
+    }
 
     pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
@@ -191,22 +272,22 @@ impl Vec3 {
 
     pub fn get_u8_x(&self, samples_per_pixel: u32) -> u8 {
         let scale = 1.0 / ((samples_per_pixel) as f64);
-        let r = self.x * scale;
+        let r = (self.x * scale).sqrt();
         (255.999 * (clamp(r, 0.0, 0.999))) as u8
         // ((self.x) * 255.999) as u8
     }
 
     pub fn get_u8_y(&self, samples_per_pixel: u32) -> u8 {
         let scale = 1.0 / ((samples_per_pixel) as f64);
-        let g = self.y * scale;
-        (256.0 * (clamp(g, 0.0, 0.999))) as u8
+        let g = (self.y * scale).sqrt();
+        (255.999 * (clamp(g, 0.0, 0.999))) as u8
         // ((self.y) * 255.999) as u8
     }
 
     pub fn get_u8_z(&self, samples_per_pixel: u32) -> u8 {
         let scale = 1.0 / ((samples_per_pixel) as f64);
-        let b = self.z * scale;
-        (256.0 * (clamp(b, 0.0, 0.999))) as u8
+        let b = (self.z * scale).sqrt();
+        (255.999 * (clamp(b, 0.0, 0.999))) as u8
         //((self.z) * 255.999) as u8
     }
 }

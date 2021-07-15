@@ -1,3 +1,4 @@
+pub use crate::matirial::Material;
 pub use crate::ray::HitRecord;
 pub use crate::ray::Hittable;
 pub use crate::ray::Ray;

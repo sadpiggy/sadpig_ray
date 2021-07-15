@@ -1,6 +1,10 @@
+use crate::matirial::Lambertian;
+pub use crate::matirial::Material;
 pub use crate::vec3::Vec3;
 use std::f64::INFINITY;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::sync::Arc;
+
 #[derive(Clone)]
 //pub use crate::vec3::Ray;
 
@@ -9,19 +13,28 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub mat_ptr: Arc<dyn Material>,
 }
 //设置为mut
 impl HitRecord {
-    pub fn new(p_: Vec3, normal_: Vec3, t_: f64, front_face_: bool) -> HitRecord {
+    pub fn new(
+        p_: Vec3,
+        normal_: Vec3,
+        t_: f64,
+        front_face_: bool,
+        mat_ptr_: Arc<dyn Material>,
+    ) -> HitRecord {
         HitRecord {
             p: p_,
             normal: normal_,
             t: t_,
             front_face: front_face_,
+            mat_ptr: mat_ptr_,
         }
     }
 
     pub fn new_blank() -> HitRecord {
+        let pig = Lambertian::new(&Vec3::zero());
         HitRecord {
             p: Vec3 {
                 x: 0.0,
@@ -35,6 +48,7 @@ impl HitRecord {
             },
             t: 0.0,
             front_face: false,
+            mat_ptr: Arc::new(pig),
         }
     }
 
@@ -58,6 +72,7 @@ pub trait Hittable {
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
+    pub mat_ptr: Arc<dyn Material>,
 }
 
 pub struct Ray {
@@ -130,6 +145,7 @@ impl Hittable for Sphere {
             rec.t = t;
             rec.p = r.at(t);
             rec.set_face_normal(&r, &((rec.p.sub(self.center.clone())).div(self.radius)));
+            rec.mat_ptr = self.mat_ptr.clone();
             return true;
         }
         let t: f64 = (-half_b + root) / a;
@@ -137,6 +153,7 @@ impl Hittable for Sphere {
             rec.t = t;
             rec.p = r.at(t);
             rec.set_face_normal(&r, &((rec.p.sub(self.center.clone())).div(self.radius)));
+            rec.mat_ptr = self.mat_ptr.clone();
             return true;
         }
         return false;
@@ -144,11 +161,22 @@ impl Hittable for Sphere {
 }
 
 impl Ray {
-    pub fn ray_color(&self, world: &dyn Hittable) -> Vec3 {
+    pub fn ray_color(&self, world: &dyn Hittable, depth: i32) -> Vec3 {
         let mut rec: HitRecord = HitRecord::new_blank();
+        if depth <= 0 {
+            return Vec3::zero();
+        }
         let inf = INFINITY;
-        if world.hit(&self, 0.0, inf, &mut rec) {
-            return (rec.normal + Vec3::new(1.0, 1.0, 1.0)).mul(0.5);
+        if world.hit(&self, 0.001, inf, &mut rec) {
+            let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            let mut attenuation = Vec3::zero();
+            if rec
+                .mat_ptr
+                .scatter(&self, &rec, &mut attenuation, &mut scattered)
+            {
+                return scattered.ray_color(world, depth - 1).mul(attenuation);
+            }
+            return Vec3::zero();
         }
         // let unit_dire = self.dire.clone();
         let t: f64 = (self.dire.y + 1.0) * 0.5;
