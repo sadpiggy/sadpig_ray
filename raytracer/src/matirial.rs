@@ -1,12 +1,13 @@
 pub use crate::camera::{random_double_0_1, Camera};
 pub use crate::hittable_list::{HitRecord, Hittable, HittableList};
-pub use crate::ray::Sphere;
+pub use crate::RAY::Sphere;
 pub use crate::rtweekend::clamp;
 use crate::rtweekend::schlick;
 use crate::{Ray, Vec3};
 use std::alloc::handle_alloc_error;
 use std::collections::hash_map::Entry::Vacant;
 use std::ops::{Add, Mul};
+use crate::RAY::{Ray, HitRecord};
 
 //unit_direction
 pub trait Material {

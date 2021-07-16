@@ -1,5 +1,5 @@
 use crate::matirial::{Dielectric, HittableList, Lambertian, Material, Metal};
-use crate::ray::Sphere;
+use crate::RAY::Sphere;
 use crate::Vec3;
 use rand::Rng;
 use std::f64::consts::PI;

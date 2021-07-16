@@ -1,4 +1,4 @@
-pub use crate::ray::Ray;
+pub use crate::RAY::Ray;
 use crate::rtweekend::degrees_to_radians;
 pub use crate::rtweekend::random_double_0_1;
 pub use crate::rtweekend::random_double_a_b;
