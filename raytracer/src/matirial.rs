@@ -1,9 +1,9 @@
 pub use crate::camera::{random_double_0_1, Camera};
-pub use crate::hittable_list::{HitRecord, Hittable, HittableList};
+pub use crate::hittable_list::{HittableList};
 pub use crate::RAY::Sphere;
 pub use crate::rtweekend::clamp;
 use crate::rtweekend::schlick;
-use crate::{Ray, Vec3};
+use crate::{Vec3};
 use std::alloc::handle_alloc_error;
 use std::collections::hash_map::Entry::Vacant;
 use std::ops::{Add, Mul};

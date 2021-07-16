@@ -7,7 +7,7 @@ mod rtweekend;
 mod vec3;
 
 use crate::camera::{random_double_0_1, Camera};
-use crate::hittable_list::{Hittable, HittableList};
+use crate::hittable_list::{HittableList};
 use crate::matirial::{Dielectric, Lambertian, Material, Metal};
 use crate::RAY::Sphere;
 use crate::rtweekend::{clamp, random_secne};
