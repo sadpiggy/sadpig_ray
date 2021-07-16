@@ -78,10 +78,11 @@ pub struct Sphere {
 pub struct Ray {
     pub orig: Vec3,
     pub dire: Vec3,
+    pub time: f64,
 }
 
 impl Ray {
-    pub fn new(x1: f64, y1: f64, z1: f64, x2: f64, y2: f64, z2: f64) -> Self {
+    pub fn new(x1: f64, y1: f64, z1: f64, x2: f64, y2: f64, z2: f64, t: f64) -> Self {
         Self {
             orig: Vec3 {
                 x: x1,
@@ -93,10 +94,11 @@ impl Ray {
                 y: y2,
                 z: z2,
             },
+            time: t,
         }
     }
 
-    pub fn new2(orig_: &Vec3, dire_: &Vec3) -> Self {
+    pub fn new2(orig_: &Vec3, dire_: &Vec3, t: f64) -> Self {
         Self {
             orig: Vec3 {
                 x: orig_.x,
@@ -108,6 +110,7 @@ impl Ray {
                 y: dire_.y,
                 z: dire_.z,
             },
+            time: t,
         }
     }
 
@@ -168,7 +171,7 @@ impl Ray {
         }
         let inf = INFINITY;
         if world.hit(&self, 0.001, inf, &mut rec) {
-            let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+            let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
             let mut attenuation = Vec3::zero();
             if rec
                 .mat_ptr

@@ -1,13 +1,13 @@
 pub use crate::camera::{random_double_0_1, Camera};
-pub use crate::hittable_list::{HittableList};
-pub use crate::RAY::Sphere;
+pub use crate::hittable_list::HittableList;
 pub use crate::rtweekend::clamp;
 use crate::rtweekend::schlick;
-use crate::{Vec3};
+use crate::Vec3;
+pub use crate::RAY::Sphere;
+use crate::RAY::{HitRecord, Ray};
 use std::alloc::handle_alloc_error;
 use std::collections::hash_map::Entry::Vacant;
 use std::ops::{Add, Mul};
-use crate::RAY::{Ray, HitRecord};
 
 //unit_direction
 pub trait Material {
@@ -44,7 +44,11 @@ impl Material for Lambertian {
         attenuation: &mut Vec3,
         scattered: &mut Ray,
     ) -> bool {
-        let r_mid = Ray::new2(&(rec.p), &(rec.normal.add(Vec3::random_unit_vector())));
+        let r_mid = Ray::new2(
+            &(rec.p),
+            &(rec.normal.add(Vec3::random_unit_vector())),
+            r_in.time,
+        );
         scattered.dire = r_mid.dire.clone();
         scattered.orig = r_mid.orig.clone();
         attenuation.x = self.albedo.x;
@@ -91,6 +95,7 @@ impl Material for Metal {
         let r_mid = Ray::new2(
             &(rec.p),
             &(reflected.add((Vec3::random_in_unit_sphere()).mul(self.fuzz.clone()))),
+            r_in.time,
         );
         scattered.dire = r_mid.dire.clone();
         scattered.orig = r_mid.orig.clone();
@@ -139,7 +144,7 @@ impl Material for Dielectric {
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
         if etai * sin_theta > 1.0 {
             let reflected = Vec3::reflect(&(unit_v), &rec.normal);
-            let r_mid = Ray::new2(&rec.p, &reflected);
+            let r_mid = Ray::new2(&rec.p, &reflected, r_in.time);
             scattered.dire = r_mid.dire.clone();
             scattered.orig = r_mid.orig.clone();
             return true;
@@ -148,14 +153,14 @@ impl Material for Dielectric {
         let reflect_prob = schlick(cos_theta, etai);
         if random_double_0_1() < reflect_prob {
             let reflected = Vec3::reflect(&(unit_v), &rec.normal);
-            let r_mid = Ray::new2(&rec.p, &reflected);
+            let r_mid = Ray::new2(&rec.p, &reflected, r_in.time);
             scattered.dire = r_mid.dire.clone();
             scattered.orig = r_mid.orig.clone();
             return true;
         }
 
         let refracted = Vec3::refract(&(unit_v), &rec.normal, etai);
-        let r_mid = Ray::new2(&rec.p, &refracted);
+        let r_mid = Ray::new2(&rec.p, &refracted, r_in.time);
         scattered.dire = r_mid.dire.clone();
         scattered.orig = r_mid.orig.clone();
         true

@@ -1,9 +1,10 @@
 use crate::matirial::{Dielectric, HittableList, Lambertian, Material, Metal};
-use crate::RAY::Sphere;
+use crate::moving_sphere::MovingSphere;
 use crate::Vec3;
+use crate::RAY::Sphere;
 use rand::Rng;
 use std::f64::consts::PI;
-use std::ops::{Mul, Sub};
+use std::ops::{Add, Mul, Sub};
 use std::sync::Arc;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
@@ -59,8 +60,15 @@ pub fn random_secne() -> HittableList {
                     //diffuse
                     let albedo = Vec3::random_v_0_1().mul(Vec3::random_v_0_1());
                     sphere_material = Arc::new(Lambertian::new(&albedo));
-                    world.add(Arc::new(Sphere {
-                        center: center_,
+                    // auto center2 = center + vec3(0, random_double(0,.5), 0);
+                    // world.add(make_shared<moving_sphere>(
+                    //     center, center2, 0.0, 1.0, 0.2, sphere_material));
+                    let center2 = center_.add(Vec3::new(0.0, random_double_a_b(0.0, 0.5), 0.0));
+                    world.add(Arc::new(MovingSphere {
+                        center0: center_,
+                        center1: center2,
+                        time0: 0.0,
+                        time1: 1.0,
                         radius: 0.2,
                         mat_ptr: sphere_material,
                     }));

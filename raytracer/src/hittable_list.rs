@@ -1,9 +1,9 @@
 pub use crate::matirial::Material;
 pub use crate::vec3::Vec3;
+use crate::RAY::{HitRecord, Hittable, Ray};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::sync::Arc;
 use std::vec;
-use crate::RAY::{Hittable, Ray, HitRecord};
 
 #[derive(Clone)]
 

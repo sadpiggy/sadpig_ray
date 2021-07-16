@@ -1,16 +1,17 @@
+mod RAY;
 mod camera;
 mod hittable_list;
 mod matirial;
-mod RAY;
+mod moving_sphere;
 mod rtweekend;
 #[allow(clippy::float_cmp)]
 mod vec3;
 
 use crate::camera::{random_double_0_1, Camera};
-use crate::hittable_list::{HittableList};
+use crate::hittable_list::HittableList;
 use crate::matirial::{Dielectric, Lambertian, Material, Metal};
-use crate::RAY::Sphere;
 use crate::rtweekend::{clamp, random_secne};
+use crate::RAY::Sphere;
 use core::fmt::Alignment::Center;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
@@ -18,15 +19,15 @@ use indicatif::ProgressBar;
 use std::f64::consts::PI;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 use std::sync::Arc;
-use std::vec;
+use std::vec::Vec;
 pub use vec3::Vec3;
 
 fn main() {
     let aspect_ratio_ = 3.0 / 2.0;
     let image_width: u32 = 1200;
     let image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
-    let samples_per_pixels: u32 = 300;
-    let max_depth = 100;
+    let samples_per_pixels: u32 = 3;
+    let max_depth = 10;
     //world
     let R = (PI / 4.0).cos();
     //let mut world: HittableList = HittableList { objects: vec![] };
@@ -43,6 +44,8 @@ fn main() {
         aspect_ratio_,
         0.1,
         10.0,
+        0.0,
+        1.0,
     );
     //render
     let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
