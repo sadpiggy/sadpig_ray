@@ -1,7 +1,7 @@
 mod camera;
 mod hittable_list;
 mod matirial;
-mod ray;
+mod RAY;
 mod rtweekend;
 #[allow(clippy::float_cmp)]
 mod vec3;
@@ -25,59 +25,13 @@ fn main() {
     let aspect_ratio_ = 3.0 / 2.0;
     let image_width: u32 = 1200;
     let image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
-    let samples_per_pixels: u32 = 50;
-    let max_depth = 20;
+    let samples_per_pixels: u32 = 300;
+    let max_depth = 100;
     //world
     let R = (PI / 4.0).cos();
     //let mut world: HittableList = HittableList { objects: vec![] };
     let mut world = random_secne();
-    // let material_ground = Arc::new(Lambertian::new(&(Vec3::new(0.8, 0.8, 0.0))));
-    // let material_center = Arc::new(Lambertian::new(&(Vec3::new(0.1, 0.2, 0.5))));
-    // //let material_center = Arc::new(Lambertian::new(&(Vec3::new(0.7, 0.3, 0.3))));
-    // //let material_center = Arc::new(Dielectric::new(1.5));
-    // let material_l = Arc::new(Dielectric::new(1.5));
-    // //let material_l = Arc::new(Metal::new(&(Vec3::new(1.0, 0.0, 0.8)), 1.0));
-    // let material_r = Arc::new(Metal::new(&(Vec3::new(0.8, 0.6, 0.2)), 0.0));
-    // world.add(Arc::new(Sphere {
-    //     center: Vec3::new(0.0, -100.5, -1.0),
-    //     radius: 100.0,
-    //     mat_ptr: material_ground,
-    // }));
-    // world.add(Arc::new(Sphere {
-    //     center: Vec3::new(0.0, 0.0, -1.0),
-    //     radius: 0.5,
-    //     mat_ptr: material_center,
-    // }));
-    // world.add(Arc::new(Sphere {
-    //     center: Vec3::new(-1.0, 0.0, -1.0),
-    //     radius: 0.5,
-    //     mat_ptr: material_l.clone(),
-    // }));
-    // world.add(Arc::new(Sphere {
-    //     center: Vec3::new(-1.0, 0.0, -1.0),
-    //     radius: -0.45,
-    //     mat_ptr: material_l,
-    // }));
-    // world.add(Arc::new(Sphere {
-    //     center: Vec3::new(1.0, 0.0, -1.0),
-    //     radius: 0.5,
-    //     mat_ptr: material_r,
-    // }));
 
-    // let milk = Lambertian::new(&Vec3::zero());
-    // let pig: Arc<dyn Hittable> = Arc::new(Sphere {
-    //     center: Vec3::new(0.0, 0.0, -1.0),
-    //     radius: 0.5,
-    //     mat_ptr: Arc::new(milk),
-    // });
-    // world.add(pig);
-    // let milk2 = Lambertian::new(&Vec3::zero());
-    // let pig2: Arc<dyn Hittable> = Arc::new(Sphere {
-    //     center: Vec3::new(0.0, -100.5, -1.0),
-    //     radius: 100.0,
-    //     mat_ptr: Arc::new(milk2),
-    // });
-    //world.add(pig2);
     //camera
     let look_from_ = (Vec3::new(12.0, 2.0, 3.0));
     let look_at_ = (Vec3::new(0.0, 0.0, 0.0));
