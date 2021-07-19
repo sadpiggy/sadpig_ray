@@ -435,15 +435,16 @@ pub fn final_scene() -> HittableList {
         Vec3::new(1.0, 1.0, 1.0),
     )));
 
-    let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
-        "input/me.png",
-    ))));
+    // let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
+    //     "input/me.png",
+    // ))));
+    let pertext = Arc::new(NoiseTexture::new(0.1));
     objects.add(Arc::new(Sphere {
         center: Vec3::new(400.0, 200.0, 400.0),
         radius: 100.0,
-        mat_ptr: emat,
+        mat_ptr: Arc::new(Lambertian::new1(pertext.clone())),
     }));
-    let pertext = Arc::new(NoiseTexture::new(0.1));
+
     objects.add(Arc::new(Sphere {
         center: Vec3::new(220.0, 280.0, 300.0),
         radius: 80.0,

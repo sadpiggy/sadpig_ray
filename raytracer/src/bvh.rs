@@ -40,8 +40,6 @@ impl BvhNode {
         let mut objects = src_objects.clone();
         let object_span = end - start;
 
-        //println!("ri_ni_ma_tui_qian=={}", object_span);
-
         let axis = random_int_a_b(0, 2);
         let mut compare: fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> bool =
             BvhNode::box_x_compare;
