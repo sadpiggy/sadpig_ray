@@ -1,4 +1,5 @@
 use crate::aarect_h::{XyRect, XzRect, YzRect};
+use crate::constant_medium::ConstantMedium;
 use crate::matirial::{Dielectric, DiffuseLight, HittableList, Lambertian, Material, Metal};
 use crate::moving_sphere::MovingSphere;
 use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture};
@@ -283,3 +284,73 @@ pub fn cornell_box() -> HittableList {
 
     objects
 }
+
+pub fn cornell_smoke() -> HittableList {
+    let mut objects: HittableList = HittableList::new_zero();
+    let red = Arc::new(Lambertian::new(&(Vec3::new(0.65, 0.05, 0.05))));
+    let white = Arc::new(Lambertian::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let green = Arc::new(Lambertian::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let light = Arc::new(DiffuseLight::new2(Vec3::new(15.0, 15.0, 15.0)));
+    objects.add(Arc::new(YzRect::new(0.0, 555.0, 0.0, 555.0, 555.0, green)));
+    objects.add(Arc::new(YzRect::new(0.0, 555.0, 0.0, 555.0, 0.0, red)));
+    objects.add(Arc::new(XzRect::new(
+        213.0, 343.0, 227.0, 332.0, 554.0, light,
+    )));
+    objects.add(Arc::new(XzRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        0.0,
+        white.clone(),
+    )));
+    objects.add(Arc::new(XzRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        555.0,
+        white.clone(),
+    )));
+    objects.add(Arc::new(XyRect::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        555.0,
+        white.clone(),
+    )));
+
+    let mut box1: Arc<dyn Hittable> = Arc::new(Hezi::new(
+        Vec3::zero(),
+        Vec3::new(165.0, 330.0, 165.0),
+        white.clone(),
+    ));
+    box1 = Arc::new(RotateY::new(box1, 15.0));
+    box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(Hezi::new(
+        Vec3::zero(),
+        Vec3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ));
+    box2 = Arc::new(RotateY::new(box2, -18.0));
+    box2 = Arc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
+
+    objects.add(Arc::new(ConstantMedium::new2(
+        box1,
+        0.01,
+        Vec3::new(0.0, 0.0, 0.0),
+    )));
+    objects.add(Arc::new(ConstantMedium::new2(
+        box2,
+        0.01,
+        Vec3::new(1.0, 1.0, 1.0),
+    )));
+
+    objects
+}
+
+// pub fn final_scene()->HittableList{
+//
+// }

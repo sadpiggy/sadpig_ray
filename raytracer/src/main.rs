@@ -4,6 +4,7 @@ mod aabb;
 mod aarect_h;
 mod bvh;
 mod camera;
+mod constant_medium;
 mod hittable_list;
 mod matirial;
 mod moving_sphere;
@@ -17,7 +18,8 @@ use crate::camera::{random_double_0_1, Camera};
 use crate::hittable_list::HittableList;
 use crate::matirial::{Dielectric, Lambertian, Material, Metal};
 use crate::rtweekend::{
-    clamp, cornell_box, earth, random_secne, simple_light, two_perlin_spheres, two_spheres,
+    clamp, cornell_box, cornell_smoke, earth, random_secne, simple_light, two_perlin_spheres,
+    two_spheres,
 };
 use crate::RAY::Sphere;
 use core::fmt::Alignment::Center;
@@ -37,7 +39,7 @@ fn main() {
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
     let mut samples_per_pixels: u32 = 500;
-    let max_depth = 100;
+    let max_depth = 50;
     //world
     let R = (PI / 4.0).cos();
     let mut world: HittableList; // HittableList { objects: vec![] };
@@ -48,7 +50,7 @@ fn main() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::zero();
 
-    let mut case = 5;
+    let mut case = 6;
     if case == 0 {
         world = random_secne();
         background = Vec3::new(0.7, 0.8, 1.0);
@@ -90,6 +92,16 @@ fn main() {
     }
     if case == 5 {
         world = cornell_box();
+        background = Vec3::new(0.0, 0.0, 0.0);
+        look_from_ = Vec3::new(278.0, 278.0, -800.0);
+        look_at_ = Vec3::new(278.0, 278.0, 0.0);
+        vfov_ = 40.0;
+        aspect_ratio_ = 1.0;
+        image_width = 600;
+        image_height = image_width;
+    }
+    if case == 6 {
+        world = cornell_smoke();
         background = Vec3::new(0.0, 0.0, 0.0);
         look_from_ = Vec3::new(278.0, 278.0, -800.0);
         look_at_ = Vec3::new(278.0, 278.0, 0.0);

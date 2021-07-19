@@ -235,3 +235,43 @@ impl Material for DiffuseLight {
         self.emit.value(u, v, p)
     }
 }
+
+pub struct Iostropic {
+    pub albedo: Arc<dyn Texture>,
+}
+
+impl Iostropic {
+    pub fn new(c: Vec3) -> Iostropic {
+        Iostropic {
+            albedo: Arc::new(SolidColor::new(c)),
+        }
+    }
+
+    pub fn new2(a: Arc<dyn Texture>) -> Iostropic {
+        Iostropic { albedo: a }
+    }
+}
+
+impl Material for Iostropic {
+    fn scatter(
+        &self,
+        r_in: &Ray,
+        rec: &HitRecord,
+        attenuation: &mut Vec3,
+        scattered: &mut Ray,
+    ) -> bool {
+        let pig = Ray::new2(&rec.p, &Vec3::random_in_unit_sphere(), r_in.time);
+        scattered.time = pig.time;
+        scattered.dire = pig.dire.clone();
+        scattered.orig = pig.orig.clone();
+        let dog = self.albedo.value(rec.u, rec.v, &rec.p);
+        attenuation.x = dog.x;
+        attenuation.y = dog.y;
+        attenuation.z = dog.z;
+        true
+    }
+
+    fn emitted(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        Vec3::zero()
+    }
+}
