@@ -1,4 +1,6 @@
+use crate::aabb::Aabb;
 pub use crate::matirial::Material;
+use crate::moving_sphere::MovingSphere;
 pub use crate::vec3::Vec3;
 use crate::RAY::{HitRecord, Hittable, Ray};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
@@ -12,6 +14,10 @@ pub struct HittableList {
 }
 
 impl HittableList {
+    pub fn new_zero() -> HittableList {
+        HittableList { objects: vec![] }
+    }
+
     pub fn add(&mut self, object: Arc<dyn Hittable>) {
         self.objects.push(object);
     }
@@ -38,5 +44,41 @@ impl Hittable for HittableList {
             }
         }
         return hit_anything;
+    }
+
+    // if (objects.empty()) return false;
+    //
+    // aabb temp_box;
+    // bool first_box = true;
+    //
+    // for (const auto& object : objects) {
+    // if (!object->bounding_box(time0, time1, temp_box)) return false;
+    // output_box = first_box ? temp_box : surrounding_box(output_box, temp_box);
+    // first_box = false;
+    // }
+    //
+    // return true;
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        if self.objects.is_empty() {
+            return false;
+        }
+        let mut temp_box = Aabb::new_zero();
+        let mut first_box = true;
+        for object in &self.objects {
+            if !object.bounding_box(time0, time1, &mut temp_box) {
+                return false;
+            }
+            if first_box {
+                output_box.minimum = temp_box.minimum.clone();
+                output_box.maximum = temp_box.maximum.clone();
+            } else {
+                let pig = MovingSphere::surrounding_box(&output_box, &temp_box);
+                output_box.minimum = pig.minimum.clone();
+                output_box.maximum = pig.maximum.clone();
+                first_box = false;
+            }
+        }
+        true
     }
 }

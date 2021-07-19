@@ -211,7 +211,17 @@ impl DivAssign for Vec3 {
 }
 
 impl Vec3 {
-    pub fn cross(self, other: &Self) -> Self {
+    pub fn get_xyz(&self, index: i32) -> f64 {
+        if index == 0 {
+            return self.x;
+        }
+        if index == 1 {
+            return self.y;
+        }
+        self.z
+    }
+
+    pub fn cross(&self, other: &Self) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
@@ -219,7 +229,7 @@ impl Vec3 {
         }
     }
 
-    pub fn dot(self, other: &Self) -> f64 {
+    pub fn dot(&self, other: &Self) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
     pub fn unit_vector(v: &Vec3) -> Vec3 {
@@ -289,6 +299,11 @@ impl Vec3 {
         let b = (self.z * scale).sqrt();
         (255.999 * (clamp(b, 0.0, 0.999))) as u8
         //((self.z) * 255.999) as u8
+    }
+
+    pub fn near_zero(&self) -> bool {
+        let pig = 1e-8;
+        (self.x).abs() < pig && (self.y).abs() < pig && (self.z).abs() < pig
     }
 }
 

@@ -1,19 +1,22 @@
+use crate::aabb::Aabb;
 use crate::matirial::Lambertian;
 pub use crate::matirial::Material;
 pub use crate::vec3::Vec3;
+use std::f32::consts::PI;
 use std::f64::INFINITY;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 use std::sync::Arc;
 
-#[derive(Clone)]
 //pub use crate::vec3::Ray;
-
+#[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
     pub mat_ptr: Arc<dyn Material>,
+    pub u: f64,
+    pub v: f64,
 }
 //设置为mut
 impl HitRecord {
@@ -23,6 +26,8 @@ impl HitRecord {
         t_: f64,
         front_face_: bool,
         mat_ptr_: Arc<dyn Material>,
+        u_: f64,
+        v_: f64,
     ) -> HitRecord {
         HitRecord {
             p: p_,
@@ -30,6 +35,8 @@ impl HitRecord {
             t: t_,
             front_face: front_face_,
             mat_ptr: mat_ptr_,
+            u: u_,
+            v: v_,
         }
     }
 
@@ -49,6 +56,8 @@ impl HitRecord {
             t: 0.0,
             front_face: false,
             mat_ptr: Arc::new(pig),
+            u: 0.0,
+            v: 0.0,
         }
     }
 
@@ -57,6 +66,7 @@ impl HitRecord {
         self.front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
         if self.front_face {
             //println!("niamisisi");
+            // self.clone();
             self.normal = (outward_normal).clone();
         } else {
             // println!("llllll");
@@ -67,6 +77,8 @@ impl HitRecord {
 
 pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool;
 }
 
 pub struct Sphere {
@@ -131,6 +143,24 @@ impl Ray {
     }
 }
 
+impl Sphere {
+    pub fn new_zero() -> Sphere {
+        Sphere {
+            center: Vec3::zero(),
+            radius: 0.0,
+            mat_ptr: Arc::new(Lambertian::new(&Vec3::zero())),
+        }
+    }
+
+    pub fn get_sphere_uv(p: &Vec3, u: &mut f64, v: &mut f64) {
+        //什么玩意儿？
+        let theta = (-(p.y)).acos();
+        let phi = ((-p.z) / p.x).atan() + (PI as f64);
+        *u = (phi) / (2.0 * (PI as f64));
+        *v = theta / (PI as f64);
+    }
+}
+
 impl Hittable for Sphere {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         let oc: Vec3 = r.orig.sub(self.center);
@@ -141,13 +171,14 @@ impl Hittable for Sphere {
         if pan <= 0.0 {
             return false;
         };
-
         let root: f64 = pan.sqrt();
         let t: f64 = (-half_b - root) / a;
         if t > t_min && t < t_max {
             rec.t = t;
             rec.p = r.at(t);
-            rec.set_face_normal(&r, &((rec.p.sub(self.center.clone())).div(self.radius)));
+            let outward_normal_ = &((rec.p.sub(self.center.clone())).div(self.radius));
+            rec.set_face_normal(&r, &outward_normal_);
+            Sphere::get_sphere_uv(&outward_normal_, &mut rec.u, &mut rec.v);
             rec.mat_ptr = self.mat_ptr.clone();
             return true;
         }
@@ -155,16 +186,29 @@ impl Hittable for Sphere {
         if t > t_min && t < t_max {
             rec.t = t;
             rec.p = r.at(t);
-            rec.set_face_normal(&r, &((rec.p.sub(self.center.clone())).div(self.radius)));
+            let outward_normal_ = &((rec.p.sub(self.center.clone())).div(self.radius));
+            rec.set_face_normal(&r, &outward_normal_);
+            Sphere::get_sphere_uv(&outward_normal_, &mut rec.u, &mut rec.v);
+            // rec.set_face_normal(&r, &((rec.p.sub(self.center.clone())).div(self.radius)));
             rec.mat_ptr = self.mat_ptr.clone();
             return true;
         }
         return false;
     }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        output_box.minimum = self
+            .center
+            .sub(Vec3::new(self.radius, self.radius, self.radius));
+        output_box.maximum = self
+            .center
+            .add(Vec3::new(self.radius, self.radius, self.radius));
+        true
+    }
 }
 
 impl Ray {
-    pub fn ray_color(&self, world: &dyn Hittable, depth: i32) -> Vec3 {
+    pub fn ray_color(&self, background: &Vec3, world: &dyn Hittable, depth: i32) -> Vec3 {
         let mut rec: HitRecord = HitRecord::new_blank();
         if depth <= 0 {
             return Vec3::zero();
@@ -173,18 +217,22 @@ impl Ray {
         if world.hit(&self, 0.001, inf, &mut rec) {
             let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
             let mut attenuation = Vec3::zero();
+            let emitted = rec.mat_ptr.emitted(rec.u, rec.v, &rec.p);
             if rec
                 .mat_ptr
                 .scatter(&self, &rec, &mut attenuation, &mut scattered)
             {
-                return scattered.ray_color(world, depth - 1).mul(attenuation);
+                return scattered
+                    .ray_color(background, world, depth - 1)
+                    .mul(attenuation); //引用要不要打引用符号？
             }
-            return Vec3::zero();
+            return emitted;
         }
+        background.clone()
         // let unit_dire = self.dire.clone();
-        let t: f64 = (self.dire.y + 1.0) * 0.5;
-        let v1: Vec3 = Vec3::new(1.0, 1.0, 1.0).mul(1.0 - t);
-        v1.add((Vec3::new(0.5, 0.7, 1.0).mul(t)))
+        // let t: f64 = (self.dire.y + 1.0) * 0.5;
+        // let v1: Vec3 = Vec3::new(1.0, 1.0, 1.0).mul(1.0 - t);
+        // v1.add((Vec3::new(0.5, 0.7, 1.0).mul(t)))
     }
     // pub fn ray_color(&self) -> Vec3 {
     //     let mid: Vec3 = Vec3::new(0.0, 0.0, -1.0);

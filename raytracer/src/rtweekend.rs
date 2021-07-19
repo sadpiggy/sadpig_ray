@@ -1,14 +1,31 @@
-use crate::matirial::{Dielectric, HittableList, Lambertian, Material, Metal};
+use crate::aarect_h::XyRect;
+use crate::matirial::{Dielectric, DiffuseLight, HittableList, Lambertian, Material, Metal};
 use crate::moving_sphere::MovingSphere;
+use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture};
 use crate::Vec3;
 use crate::RAY::Sphere;
 use rand::Rng;
 use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
+use std::sync::atomic::Ordering::AcqRel;
 use std::sync::Arc;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
+}
+
+pub fn f_min(v1: f64, v2: f64) -> f64 {
+    if v1 < v2 {
+        return v1;
+    }
+    v2
+}
+
+pub fn f_max(v1: f64, v2: f64) -> f64 {
+    if v1 > v2 {
+        return v1;
+    }
+    v2
 }
 
 pub fn random_double_0_1() -> f64 {
@@ -17,6 +34,11 @@ pub fn random_double_0_1() -> f64 {
 }
 
 pub fn random_double_a_b(min: f64, max: f64) -> f64 {
+    let mut rng = rand::thread_rng();
+    rng.gen_range(min..max)
+}
+
+pub fn random_int_a_b(min: i32, max: i32) -> i32 {
     let mut rng = rand::thread_rng();
     rng.gen_range(min..max)
 }
@@ -39,12 +61,24 @@ pub fn schlick(cosine: f64, ref_idx: f64) -> f64 {
 
 pub fn random_secne() -> HittableList {
     let mut world = HittableList { objects: vec![] };
-    let ground_material = Arc::new(Lambertian::new(&Vec3::new(0.5, 0.5, 0.5)));
+
+    let checker = Arc::new(CheckerTexture::new2(
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
     world.add(Arc::new(Sphere {
         center: Vec3::new(0.0, -1000.0, 0.0),
         radius: 1000.0,
-        mat_ptr: ground_material,
+        mat_ptr: Arc::new(Lambertian::new1(checker)),
     }));
+
+    // let ground_material = Arc::new(Lambertian::new(&Vec3::new(0.5, 0.5, 0.5)));
+    // world.add(Arc::new(Sphere {
+    //     center: Vec3::new(0.0, -1000.0, 0.0),
+    //     radius: 1000.0,
+    //     mat_ptr: ground_material,
+    // }));
+    //
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat = random_double_0_1();
@@ -117,4 +151,77 @@ pub fn random_secne() -> HittableList {
         mat_ptr: material3,
     }));
     world
+}
+
+pub fn two_spheres() -> HittableList {
+    let mut objects: HittableList = HittableList::new_zero();
+    let checker = Arc::new(CheckerTexture::new2(
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
+
+    //let pertext = Arc::new(NoiseTexture::new());
+
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, -10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: Arc::new(Lambertian::new1(checker.clone())),
+    }));
+
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, 10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: Arc::new(Lambertian::new1(checker.clone())),
+    }));
+
+    objects
+}
+
+pub fn two_perlin_spheres() -> HittableList {
+    let mut objects: HittableList = HittableList::new_zero();
+
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        mat_ptr: Arc::new(Lambertian::new1(pertext.clone())),
+    }));
+
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, 2.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Arc::new(Lambertian::new1(pertext.clone())),
+    }));
+
+    objects
+}
+
+pub fn earth() -> HittableList {
+    let mut objects: HittableList = HittableList::new_zero();
+    let earth_textrue = Arc::new(ImageTexture::new("input/sanhuo.png"));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, 0.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Arc::new(Lambertian::new1(earth_textrue)),
+    }));
+    objects
+}
+
+pub fn simple_light() -> HittableList {
+    let mut objects: HittableList = HittableList::new_zero();
+    let pertext = Arc::new(NoiseTexture::new(4.0));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, -1000.0, 0.0),
+        radius: 1000.0,
+        mat_ptr: Arc::new(Lambertian::new1(pertext.clone())),
+    }));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, 2.0, 0.0),
+        radius: 2.0,
+        mat_ptr: Arc::new(Lambertian::new1(pertext)),
+    }));
+    let difflight = Arc::new(DiffuseLight::new2(Vec3::new(4.0, 4.0, 4.0)));
+    objects.add(Arc::new(XyRect::new(3.0, 5.0, 1.0, 3.0, -2.0, difflight)));
+    objects
 }
