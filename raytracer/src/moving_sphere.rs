@@ -108,21 +108,21 @@ impl Hittable for MovingSphere {
     //     return true;
     // }
 
-    fn bounding_box(&self, _time0: f64, _time1: f64, output_box: &mut Aabb) -> bool {
+    fn bounding_box(&self, time0_: f64, time1_: f64, output_box: &mut Aabb) -> bool {
         let box0 = Aabb {
             minimum: self
-                .center(_time0)
+                .center(time0_)
                 .sub(Vec3::new(self.radius, self.radius, self.radius)),
             maximum: self
-                .center(_time0)
+                .center(time0_)
                 .add(Vec3::new(self.radius, self.radius, self.radius)),
         };
         let box1 = Aabb {
             minimum: self
-                .center(_time1)
+                .center(time1_)
                 .sub(Vec3::new(self.radius, self.radius, self.radius)),
             maximum: self
-                .center(_time1)
+                .center(time1_)
                 .add(Vec3::new(self.radius, self.radius, self.radius)),
         };
         let box_mid = MovingSphere::surrounding_box(&box0, &box1);

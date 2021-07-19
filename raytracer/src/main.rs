@@ -18,8 +18,8 @@ use crate::camera::{random_double_0_1, Camera};
 use crate::hittable_list::HittableList;
 use crate::matirial::{Dielectric, Lambertian, Material, Metal};
 use crate::rtweekend::{
-    clamp, cornell_box, cornell_smoke, earth, random_secne, simple_light, two_perlin_spheres,
-    two_spheres,
+    clamp, cornell_box, cornell_smoke, earth, final_scene, random_secne, simple_light,
+    two_perlin_spheres, two_spheres,
 };
 use crate::RAY::Sphere;
 use core::fmt::Alignment::Center;
@@ -50,7 +50,7 @@ fn main() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::zero();
 
-    let mut case = 6;
+    let mut case = 7;
     if case == 0 {
         world = random_secne();
         background = Vec3::new(0.7, 0.8, 1.0);
@@ -108,6 +108,17 @@ fn main() {
         vfov_ = 40.0;
         aspect_ratio_ = 1.0;
         image_width = 600;
+        image_height = image_width;
+    }
+
+    if case == 7 {
+        world = final_scene();
+        background = Vec3::new(0.0, 0.0, 0.0);
+        look_from_ = Vec3::new(478.0, 278.0, -600.0);
+        look_at_ = Vec3::new(278.0, 278.0, 0.0);
+        vfov_ = 40.0;
+        aspect_ratio_ = 1.0;
+        image_width = 800;
         image_height = image_width;
     }
 

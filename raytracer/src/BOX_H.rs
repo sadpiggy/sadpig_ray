@@ -80,6 +80,6 @@ impl Hittable for Hezi {
     }
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
-        false //todo maybe
+        true //todo maybe
     }
 }

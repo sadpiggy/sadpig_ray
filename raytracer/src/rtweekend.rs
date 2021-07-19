@@ -1,4 +1,5 @@
 use crate::aarect_h::{XyRect, XzRect, YzRect};
+use crate::bvh::BvhNode;
 use crate::constant_medium::ConstantMedium;
 use crate::matirial::{Dielectric, DiffuseLight, HittableList, Lambertian, Material, Metal};
 use crate::moving_sphere::MovingSphere;
@@ -7,6 +8,7 @@ use crate::Vec3;
 use crate::BOX_H::Hezi;
 use crate::RAY::{Hittable, RotateY, Sphere, Translate};
 use rand::Rng;
+use std::collections::hash_map::Entry::Vacant;
 use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
 use std::sync::atomic::Ordering::AcqRel;
@@ -351,6 +353,120 @@ pub fn cornell_smoke() -> HittableList {
     objects
 }
 
-// pub fn final_scene()->HittableList{
-//
-// }
+pub fn final_scene() -> HittableList {
+    let mut boxes1 = HittableList::new_zero();
+    let mut objects = HittableList::new_zero();
+    let ground = Arc::new(Lambertian::new(&Vec3::new(0.48, 0.83, 0.53)));
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + (i as f64) * w;
+            let z0 = -1000.0 + (j as f64) * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = random_double_a_b(1.0, 101.0);
+            let z1 = z0 + w;
+
+            //objects
+            boxes1.add(Arc::new(Hezi::new(
+                Vec3::new(x0, y0, z0),
+                Vec3::new(x1, y1, z1),
+                ground.clone(),
+            )));
+        }
+    }
+
+    //return boxes1;
+
+    objects.add(Arc::new(BvhNode::new_dog(&boxes1, 0.0, 1.0)));
+
+    let light = Arc::new(DiffuseLight::new2(Vec3::new(7.0, 7.0, 7.0)));
+    objects.add(Arc::new(XzRect::new(
+        123.0, 423.0, 147.0, 412.0, 554.0, light,
+    )));
+
+    // return objects;
+
+    //  objects;
+
+    let center1 = Vec3::new(400.0, 400.0, 200.0);
+    let center2 = center1.add(Vec3::new(30.0, 0.0, 0.0));
+    let moving_sphere_material = Arc::new(Lambertian::new(&Vec3::new(0.7, 0.3, 0.1)));
+    objects.add(Arc::new(MovingSphere::new(
+        center1,
+        center2,
+        0.0,
+        1.0,
+        50.0,
+        moving_sphere_material,
+    )));
+
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(260.0, 150.0, 45.0),
+        radius: 50.0,
+        mat_ptr: Arc::new(Dielectric::new(1.5)),
+    }));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(0.0, 150.0, 145.0),
+        radius: 50.0,
+        mat_ptr: Arc::new(Metal::new(&Vec3::new(0.8, 0.8, 0.9), 1.0)),
+    }));
+
+    let mut boundary = Arc::new(Sphere {
+        center: Vec3::new(360.0, 150.0, 145.0),
+        radius: 70.0,
+        mat_ptr: Arc::new(Dielectric::new(1.5)),
+    });
+    objects.add(boundary.clone());
+    objects.add(Arc::new(ConstantMedium::new2(
+        boundary.clone(),
+        0.2,
+        Vec3::new(0.2, 0.4, 0.9),
+    )));
+    boundary = Arc::new(Sphere {
+        center: Vec3::new(0.0, 0.0, 0.0),
+        radius: 5000.0,
+        mat_ptr: Arc::new(Dielectric::new(1.5)),
+    });
+    objects.add(Arc::new(ConstantMedium::new2(
+        boundary.clone(),
+        0.0001,
+        Vec3::new(1.0, 1.0, 1.0),
+    )));
+
+    let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
+        "input/me.png",
+    ))));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(400.0, 200.0, 400.0),
+        radius: 100.0,
+        mat_ptr: emat,
+    }));
+    let pertext = Arc::new(NoiseTexture::new(0.1));
+    objects.add(Arc::new(Sphere {
+        center: Vec3::new(220.0, 280.0, 300.0),
+        radius: 80.0,
+        mat_ptr: Arc::new(Lambertian::new1(pertext)),
+    }));
+
+    let mut boxes2 = HittableList::new_zero();
+    let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
+    let ns = 1000;
+    for j in 0..ns {
+        boxes2.add(Arc::new(Sphere {
+            center: Vec3::random_v_a_b(0.0, 165.0),
+            radius: 10.0,
+            mat_ptr: white.clone(),
+        }))
+    }
+
+    let rinima = Arc::new(BvhNode::new_dog(&boxes2, 0.0, 1.0));
+
+    objects.add(Arc::new(Translate::new(
+        Arc::new(RotateY::new(rinima, 15.0)),
+        Vec3::new(-100.0, 270.0, 395.0),
+    )));
+
+    objects
+}
