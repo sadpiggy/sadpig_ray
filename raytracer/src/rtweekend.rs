@@ -4,7 +4,7 @@ use crate::moving_sphere::MovingSphere;
 use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture};
 use crate::Vec3;
 use crate::BOX_H::Hezi;
-use crate::RAY::Sphere;
+use crate::RAY::{Hittable, RotateY, Sphere, Translate};
 use rand::Rng;
 use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
@@ -262,18 +262,24 @@ pub fn cornell_box() -> HittableList {
         555.0,
         white.clone(),
     )));
-    objects.add(Arc::new(Hezi::new(
-        Vec3::new(130.0, 0.0, 65.0),
-        Vec3::new(295.0, 165.0, 230.0),
+
+    let mut box1: Arc<dyn Hittable> = Arc::new(Hezi::new(
+        Vec3::zero(),
+        Vec3::new(165.0, 330.0, 165.0),
         white.clone(),
-    )));
-    objects.add(Arc::new(
-        (Hezi::new(
-            Vec3::new(265.0, 0.0, 295.0),
-            Vec3::new(430.0, 330.0, 460.0),
-            white.clone(),
-        )),
     ));
+    box1 = Arc::new(RotateY::new(box1, 15.0));
+    box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    objects.add(box1);
+
+    let mut box2: Arc<dyn Hittable> = Arc::new(Hezi::new(
+        Vec3::zero(),
+        Vec3::new(165.0, 165.0, 165.0),
+        white.clone(),
+    ));
+    box2 = Arc::new(RotateY::new(box2, -18.0));
+    box2 = Arc::new(Translate::new(box2, Vec3::new(130.0, 0.0, 65.0)));
+    objects.add(box2);
 
     objects
 }

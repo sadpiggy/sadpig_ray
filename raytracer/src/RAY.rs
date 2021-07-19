@@ -1,6 +1,8 @@
 use crate::aabb::Aabb;
+use crate::aarect_h::YzRect;
 use crate::matirial::Lambertian;
 pub use crate::matirial::Material;
+use crate::rtweekend::{degrees_to_radians, f_max, f_min};
 pub use crate::vec3::Vec3;
 use std::f32::consts::PI;
 use std::f64::INFINITY;
@@ -234,19 +236,135 @@ impl Ray {
         // let v1: Vec3 = Vec3::new(1.0, 1.0, 1.0).mul(1.0 - t);
         // v1.add((Vec3::new(0.5, 0.7, 1.0).mul(t)))
     }
-    // pub fn ray_color(&self) -> Vec3 {
-    //     let mid: Vec3 = Vec3::new(0.0, 0.0, -1.0);
-    //     let t = self.hit_sphere(mid, 0.5);
-    //     if t > 0.0 {
-    //         let N: Vec3 = self.at(t).sub(Vec3::new(0.0, 0.0, -1.0));
-    //         return Vec3::new(N.x + 1.0, N.y + 1.0, N.z + 1.0).mul(0.5);
-    //     }
-    //
-    //     let t = 0.5 * (self.dire.y + 1.0);
-    //     let v1 = Vec3::new(1.0, 1.0, 1.0);
-    //     let v2 = Vec3::new(0.5, 0.7, 1.0);
-    //     let v1 = (v1).mul((1.0 - t));
-    //     let v2 = v2.mul(t);
-    //     v1.add(v2)
-    // }
+}
+
+pub struct Translate {
+    pub ptr: Arc<dyn Hittable>,
+    pub offset: Vec3,
+}
+
+impl Translate {
+    pub fn new(p: Arc<dyn Hittable>, off: Vec3) -> Translate {
+        Translate {
+            ptr: p,
+            offset: off,
+        }
+    }
+}
+
+impl Hittable for Translate {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let moved_r = Ray::new2(
+            &(r.orig.sub(self.offset.clone())),
+            &(r.dire.clone()),
+            r.time,
+        );
+        if !self.ptr.hit(&moved_r, t_min, t_max, rec) {
+            return false;
+        }
+        rec.p = rec.p.add(self.offset.clone());
+        rec.set_face_normal(&moved_r, &rec.normal.clone());
+        true
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        if !self.ptr.bounding_box(time0, time1, output_box) {
+            return false;
+        }
+        output_box.minimum = output_box.minimum.add(self.offset.clone());
+        output_box.maximum = output_box.maximum.add(self.offset.clone());
+        true
+    }
+}
+
+pub struct RotateY {
+    pub ptr: Arc<dyn Hittable>,
+    pub sin_theta: f64,
+    pub cos_theta: f64,
+    pub has_hezi: bool,
+    pub bbox: Aabb,
+}
+
+impl RotateY {
+    pub fn new(p: Arc<dyn Hittable>, angle: f64) -> RotateY {
+        let radians = degrees_to_radians(angle);
+        let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
+        let ptr: Arc<dyn Hittable> = p;
+        let mut bbox: Aabb = Aabb::new_zero();
+        let has_hezi = ptr.bounding_box(0.0, 1.0, &mut bbox);
+        let mut min_ = Vec3::new(INFINITY, INFINITY, INFINITY);
+        let mut max_ = Vec3::new(-INFINITY, -INFINITY, -INFINITY);
+        for i in 0..2 {
+            for j in 0..2 {
+                for k in 0..2 {
+                    let x = (i as f64) * bbox.maximum.x + (1.0 - i as f64) * bbox.minimum.x;
+                    let y = (j as f64) * bbox.maximum.y + (1.0 - j as f64) * bbox.minimum.y;
+                    let z = (k as f64) * bbox.maximum.z + (1.0 - k as f64) * bbox.minimum.z;
+                    let newx = cos_theta * x + sin_theta * z;
+                    let newz = -sin_theta * x + cos_theta * z;
+                    let tester = Vec3::new(newx, y, newz);
+                    for c in 0..3 as usize {
+                        if c == 0 {
+                            min_.x = f_min(min_.x, tester.x);
+                            max_.x = f_max(max_.x, tester.x);
+                        }
+                        if c == 1 {
+                            min_.y = f_min(min_.y, tester.y);
+                            max_.y = f_max(max_.y, tester.y);
+                        }
+                        if c == 2 {
+                            min_.z = f_min(min_.z, tester.z);
+                            max_.z = f_max(max_.z, tester.z);
+                        }
+                    }
+                }
+            }
+        }
+        bbox.minimum = min_;
+        bbox.maximum = max_;
+        RotateY {
+            ptr,
+            sin_theta,
+            cos_theta,
+            has_hezi,
+            bbox,
+        }
+    }
+}
+
+impl Hittable for RotateY {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        let mut orig = r.orig.clone();
+        let mut dire = r.dire.clone();
+        orig.x = self.cos_theta * r.orig.x - self.sin_theta * r.orig.z;
+        orig.z = self.sin_theta * r.orig.x + self.cos_theta * r.orig.z;
+
+        dire.x = self.cos_theta * r.dire.x - self.sin_theta * r.dire.z;
+        dire.z = self.sin_theta * r.dire.x + self.cos_theta * r.dire.z;
+
+        let rotated_r = Ray::new2(&orig, &dire, r.time);
+        if !self.ptr.hit(&rotated_r, t_min, t_max, rec) {
+            return false;
+        }
+
+        let mut p = rec.p.clone();
+        let mut normal = rec.normal.clone();
+
+        p.x = self.cos_theta * rec.p.x + self.sin_theta * rec.p.z;
+        p.z = -self.sin_theta * rec.p.x + self.cos_theta * rec.p.z;
+
+        normal.x = self.cos_theta * rec.normal.x + self.sin_theta * rec.normal.z;
+        normal.z = -self.sin_theta * rec.normal.x + self.cos_theta * rec.normal.z;
+
+        rec.p = p;
+        rec.set_face_normal(&rotated_r, &normal);
+        true
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        output_box.minimum = self.bbox.minimum.clone();
+        output_box.maximum = self.bbox.maximum.clone();
+        self.has_hezi
+    }
 }
