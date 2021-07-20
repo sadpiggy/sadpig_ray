@@ -91,7 +91,12 @@ impl BvhNode {
         {
             println!("NO BOUNDING BOX IN BVH_NODE CONSTRUCT");
         }
+
+        //println!("box_l=={:?} and {:?}", box_l.minimum, box_l.maximum);
+        //println!("box_r.x=={} and {}", box_r.minimum.x, box_r.maximum.x);
+
         let her = MovingSphere::surrounding_box(&box_l, &box_r);
+        //println!("her=={:?} and {:?}", her.minimum, her.maximum);
         BvhNode {
             left,
             right,
@@ -127,6 +132,7 @@ impl Hittable for BvhNode {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
         //这里的rec不清楚要不要先赋值
         if !(self.hezi.hit(r, t_min, t_max)) {
+            // println!("1");
             return false;
         }
 
@@ -138,7 +144,11 @@ impl Hittable for BvhNode {
             hit_right = self.right.hit(r, t_min, t_max, rec);
         }
 
-        hit_left || hit_right
+        if (hit_left || hit_right) {
+            return true;
+        }
+        //println!("2");
+        false
     }
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {

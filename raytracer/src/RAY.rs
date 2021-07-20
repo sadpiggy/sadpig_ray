@@ -217,6 +217,7 @@ impl Ray {
         }
         let inf = INFINITY;
         if world.hit(&self, 0.001, inf, &mut rec) {
+            // println!("wozaizheli");
             let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
             let mut attenuation = Vec3::zero();
             let emitted = rec.mat_ptr.emitted(rec.u, rec.v, &rec.p);
@@ -230,6 +231,7 @@ impl Ray {
             }
             return emitted;
         }
+
         background.clone()
         // let unit_dire = self.dire.clone();
         // let t: f64 = (self.dire.y + 1.0) * 0.5;

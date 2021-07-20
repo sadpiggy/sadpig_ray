@@ -80,6 +80,9 @@ impl Hittable for Hezi {
     }
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
-        true //todo maybe
+        //true //todo maybe
+        output_box.minimum = self.hezi_min.clone();
+        output_box.maximum = self.hezi_max.clone();
+        true
     }
 }

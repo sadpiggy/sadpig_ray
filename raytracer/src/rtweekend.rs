@@ -44,7 +44,7 @@ pub fn random_double_a_b(min: f64, max: f64) -> f64 {
 
 pub fn random_int_a_b(min: i32, max: i32) -> i32 {
     let mut rng = rand::thread_rng();
-    rng.gen_range(min..max)
+    rng.gen_range(min..(max))
 }
 
 pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
@@ -354,9 +354,11 @@ pub fn cornell_smoke() -> HittableList {
 }
 
 pub fn final_scene() -> HittableList {
+    let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
     let mut boxes1 = HittableList::new_zero();
     let mut objects = HittableList::new_zero();
-    let ground = Arc::new(Lambertian::new(&Vec3::new(0.48, 0.83, 0.53)));
+    let ground = Arc::new(Lambertian::new(&Vec3::new(10.48, 18.83, 20.53)));
+    let green = Arc::new(Lambertian::new(&(Vec3::new(0.12, 0.45, 0.15))));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
@@ -368,16 +370,15 @@ pub fn final_scene() -> HittableList {
             let y1 = random_double_a_b(1.0, 101.0);
             let z1 = z0 + w;
 
-            //objects
             boxes1.add(Arc::new(Hezi::new(
                 Vec3::new(x0, y0, z0),
                 Vec3::new(x1, y1, z1),
                 ground.clone(),
             )));
+
         }
     }
 
-    //return boxes1;
 
     objects.add(Arc::new(BvhNode::new_dog(&boxes1, 0.0, 1.0)));
 
@@ -386,9 +387,6 @@ pub fn final_scene() -> HittableList {
         123.0, 423.0, 147.0, 412.0, 554.0, light,
     )));
 
-    // return objects;
-
-    //  objects;
 
     let center1 = Vec3::new(400.0, 400.0, 200.0);
     let center2 = center1.add(Vec3::new(30.0, 0.0, 0.0));
@@ -455,6 +453,7 @@ pub fn final_scene() -> HittableList {
     let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
     let ns = 1000;
     for j in 0..ns {
+
         boxes2.add(Arc::new(Sphere {
             center: Vec3::random_v_a_b(0.0, 165.0),
             radius: 10.0,
