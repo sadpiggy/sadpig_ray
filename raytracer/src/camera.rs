@@ -5,7 +5,7 @@ pub use crate::vec3::Vec3;
 pub use crate::RAY::Ray;
 use std::ops::{Add, Div, Mul, Sub};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct Camera {
     pub origin: Vec3,
     pub lower_left_corner: Vec3,

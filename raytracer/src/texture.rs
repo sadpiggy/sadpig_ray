@@ -98,6 +98,8 @@ impl NoiseTexture {
 impl Texture for NoiseTexture {
     fn value(&self, u: f64, n: f64, p: &Vec3) -> Vec3 {
         //Vec3::new(1.0, 1.0, 1.0).mul(self.noise.turb(&p.mul(self.scale), 7))
+        //"input/me.png"
+        //../../in
         Vec3::new(1.0, 1.0, 1.0)
             .mul(0.5)
             .mul(((self.noise.turb(&p, 7)).mul(10.0).add(p.z * self.scale)).sin() + 1.0)

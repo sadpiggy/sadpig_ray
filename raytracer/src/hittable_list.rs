@@ -82,3 +82,6 @@ impl Hittable for HittableList {
         true
     }
 }
+
+unsafe impl Sync for HittableList {}
+unsafe impl Send for HittableList {}

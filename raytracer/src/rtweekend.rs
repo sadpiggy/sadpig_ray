@@ -357,7 +357,7 @@ pub fn final_scene() -> HittableList {
     let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
     let mut boxes1 = HittableList::new_zero();
     let mut objects = HittableList::new_zero();
-    let ground = Arc::new(Lambertian::new(&Vec3::new(10.48, 18.83, 20.53)));
+    let ground = Arc::new(Lambertian::new(&Vec3::new(0.48, 0.83, 0.53)));
     let green = Arc::new(Lambertian::new(&(Vec3::new(0.12, 0.45, 0.15))));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
@@ -375,10 +375,8 @@ pub fn final_scene() -> HittableList {
                 Vec3::new(x1, y1, z1),
                 ground.clone(),
             )));
-
         }
     }
-
 
     objects.add(Arc::new(BvhNode::new_dog(&boxes1, 0.0, 1.0)));
 
@@ -386,7 +384,7 @@ pub fn final_scene() -> HittableList {
     objects.add(Arc::new(XzRect::new(
         123.0, 423.0, 147.0, 412.0, 554.0, light,
     )));
-
+    //return objects;
 
     let center1 = Vec3::new(400.0, 400.0, 200.0);
     let center2 = center1.add(Vec3::new(30.0, 0.0, 0.0));
@@ -433,10 +431,15 @@ pub fn final_scene() -> HittableList {
         Vec3::new(1.0, 1.0, 1.0),
     )));
 
-    // let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
-    //     "input/me.png",
-    // ))));
+    let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
+        "input/me.png",
+    ))));
     let pertext = Arc::new(NoiseTexture::new(0.1));
+    // objects.add(Arc::new(Sphere {
+    //     center: Vec3::new(400.0, 200.0, 400.0),
+    //     radius: 100.0,
+    //     mat_ptr: emat,
+    // }));
     objects.add(Arc::new(Sphere {
         center: Vec3::new(400.0, 200.0, 400.0),
         radius: 100.0,
@@ -453,7 +456,6 @@ pub fn final_scene() -> HittableList {
     let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
     let ns = 1000;
     for j in 0..ns {
-
         boxes2.add(Arc::new(Sphere {
             center: Vec3::random_v_a_b(0.0, 165.0),
             radius: 10.0,

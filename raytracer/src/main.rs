@@ -14,7 +14,7 @@ mod texture;
 #[allow(clippy::float_cmp)]
 mod vec3;
 
-use crate::camera::{random_double_0_1, Camera};
+use crate::camera::{random_double_0_1, random_double_a_b, Camera};
 use crate::hittable_list::HittableList;
 use crate::matirial::{Dielectric, Lambertian, Material, Metal};
 use crate::rtweekend::{
@@ -29,8 +29,10 @@ use indicatif::ProgressBar;
 use image::imageops::FilterType::Lanczos3;
 use std::f64::consts::PI;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
+use std::sync::mpsc::channel;
 use std::sync::Arc;
 use std::vec::Vec;
+use threadpool::ThreadPool;
 pub use vec3::Vec3;
 
 fn main() {
@@ -39,11 +41,10 @@ fn main() {
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
     let mut samples_per_pixels: u32 = 500;
-    let max_depth = 50;
+    let max_depth = 100;
     //world
     let R = (PI / 4.0).cos();
-    let mut world: HittableList; // HittableList { objects: vec![] };
-    let mut world = random_secne();
+    let mut world: HittableList = HittableList::new_zero(); // HittableList { objects: vec![] };
     let mut vfov_ = 40.0;
     let mut aperture_ = 0.0;
     let mut look_from_: Vec3 = Vec3::zero(); // = (Vec3::new(12.0, 2.0, 3.0));
@@ -110,7 +111,6 @@ fn main() {
         image_width = 600;
         image_height = image_width;
     }
-
     if case == 7 {
         world = final_scene();
         background = Vec3::new(0.0, 0.0, 0.0);
@@ -135,32 +135,60 @@ fn main() {
         1.0,
     );
     //render
-    let mut img: RgbImage = ImageBuffer::new(image_width, image_height);
-    let bar = ProgressBar::new(1024);
-    let mut j = (image_height);
-    while j > 0 {
-        j -= 1;
-        for i in 0..image_width {
-            let mut pixel_color = Vec3::zero();
-            for s in 0..samples_per_pixels {
-                let u: f64 = ((i) as f64 + random_double_0_1()) / ((image_width - 1) as f64);
-                let v: f64 =
-                    ((image_height - j) as f64 + random_double_0_1()) / ((image_height - 1) as f64);
-                let r = cam.get_ray(u, v);
-                pixel_color.add_assign(r.ray_color(&background, &world, 20));
-            }
-            //
 
-            let pixel = img.get_pixel_mut(i, j);
-            *pixel = image::Rgb([
-                (pixel_color.get_u8_x(samples_per_pixels)),
-                (pixel_color.get_u8_y(samples_per_pixels)),
-                (pixel_color.get_u8_z(samples_per_pixels)),
-            ]);
+    let (tx, rx) = channel();
+    let n_jobs = 32;
+    let n_workers = 6;
+    let pool = ThreadPool::new(n_workers);
+
+    let mut results: RgbImage = ImageBuffer::new(image_width as u32, image_height as u32);
+    let bar = ProgressBar::new(n_jobs as u64);
+
+    for i in 0..n_jobs {
+        let tx = tx.clone();
+        let world_ = world.clone();
+        //let lights_ptr = lights.clone();
+        pool.execute(move || {
+            let row_begin = image_height as usize * i as usize / n_jobs;
+            let row_end = image_height as usize * (i as usize + 1) / n_jobs;
+            let render_height = row_end - row_begin;
+            let mut img: RgbImage = ImageBuffer::new(image_width as u32, render_height as u32);
+            for x in 0..image_width {
+                for (img_y, y) in (row_begin..row_end).enumerate() {
+                    let y = y as u32;
+                    let mut pixel_color = Vec3::new(0.0, 0.0, 0.0);
+                    for _s in 0..samples_per_pixels {
+                        let u: f64 =
+                            ((x) as f64 + random_double_0_1()) / ((image_width - 1) as f64);
+                        let v: f64 = ((image_height - y) as f64 + random_double_0_1())
+                            / ((image_height - 1) as f64);
+                        let r = cam.get_ray(u, v);
+                        pixel_color.add_assign(r.ray_color(&background, &world_, max_depth));
+                    }
+                    let pixel = img.get_pixel_mut(x as u32, img_y as u32);
+                    *pixel = image::Rgb([
+                        pixel_color.get_u8_x(samples_per_pixels),
+                        pixel_color.get_u8_y(samples_per_pixels),
+                        pixel_color.get_u8_z(samples_per_pixels),
+                    ]);
+                }
+            }
+            tx.send((row_begin..row_end, img))
+                .expect("failed to send result");
+        });
+    }
+
+    for (rows, data) in rx.iter().take(n_jobs) {
+        for (idx, row) in rows.enumerate() {
+            for col in 0..image_width {
+                let row = row as u32;
+                let idx = idx as u32;
+                *results.get_pixel_mut(col as u32, row) = *data.get_pixel(col as u32, idx);
+            }
         }
         bar.inc(1);
     }
 
-    img.save("output/test.png").unwrap();
+    results.save("output/test.png").unwrap();
     bar.finish();
 }
