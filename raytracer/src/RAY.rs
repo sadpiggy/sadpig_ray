@@ -1,7 +1,10 @@
 use crate::aabb::Aabb;
 use crate::aarect_h::YzRect;
-use crate::matirial::Lambertian;
+use crate::camera::random_double_a_b;
 pub use crate::matirial::Material;
+use crate::matirial::{Lambertian, ScatterRecord};
+use crate::onb::Onb;
+use crate::pdf::{CosinePdf, HittablePdf, MixturePdf, PDF};
 use crate::rtweekend::{degrees_to_radians, f_max, f_min};
 pub use crate::vec3::Vec3;
 use std::f32::consts::PI;
@@ -81,6 +84,10 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
 
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool;
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64;
+
+    fn random(&self, o: &Vec3) -> Vec3;
 }
 
 pub struct Sphere {
@@ -207,27 +214,94 @@ impl Hittable for Sphere {
             .add(Vec3::new(self.radius, self.radius, self.radius));
         true
     }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        let mut rec = HitRecord::new_blank();
+        if !self.hit(&Ray::new2(o, v, 0.0), 0.001, INFINITY, &mut rec) {
+            return 0.0;
+        }
+        let cos_max = (1.0
+            - self.radius * self.radius / (self.center.sub(o.clone()).squared_length()))
+        .sqrt();
+        let solid_angle = (PI as f64) * 2.0 * (1.0 - cos_max);
+        1.0 / solid_angle
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let dire = self.center.sub(o.clone());
+        let dist_square = dire.squared_length();
+        let mut uvw = Onb::new_zero();
+        uvw.build_from_w(&dire);
+        uvw.local_2(&Vec3::random_to_sphere(self.radius, dist_square))
+    }
 }
 
 impl Ray {
-    pub fn ray_color(&self, background: &Vec3, world: &dyn Hittable, depth: i32) -> Vec3 {
+    pub fn ray_color(
+        &self,
+        background: &Vec3,
+        world: &dyn Hittable,
+        lights: &Arc<dyn Hittable>,
+        depth: i32,
+    ) -> Vec3 {
         let mut rec: HitRecord = HitRecord::new_blank();
         if depth <= 0 {
             return Vec3::zero();
         }
         let inf = INFINITY;
         if world.hit(&self, 0.001, inf, &mut rec) {
-            // println!("wozaizheli");
             let mut scattered = Ray::new(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
-            let mut attenuation = Vec3::zero();
-            let emitted = rec.mat_ptr.emitted(rec.u, rec.v, &rec.p);
-            if rec
-                .mat_ptr
-                .scatter(&self, &rec, &mut attenuation, &mut scattered)
-            {
-                return scattered
-                    .ray_color(background, world, depth - 1)
-                    .mul(attenuation); //引用要不要打引用符号？
+            let mut albedo = Vec3::zero();
+            // let emitted = rec.mat_ptr.emitted(rec.u, rec.v, &rec.p);
+            let emitted = rec.mat_ptr.emitted(&self, &rec, rec.u, rec.v, &rec.p);
+            let mut pdf = 0.0;
+            let mut srec = ScatterRecord::new_zero();
+            //let albedo = Vec3::zero();
+
+            if rec.mat_ptr.scatter(&self, &rec, &mut srec) {
+                if srec.is_specular {
+                    return srec.attenuation
+                        * srec
+                            .specular_ray
+                            .ray_color(background, world, lights, depth - 1);
+                }
+                let light_ptr = Arc::new(HittablePdf::new(lights.clone(), &rec.p));
+                //let light_pdf = HittablePdf::new(lights.clone(), &rec.p);
+                // let on_light = Vec3::new(
+                //     random_double_a_b(213.0, 343.0),
+                //     554.0,
+                //     random_double_a_b(227.0, 332.0),
+                // );
+                // let mut to_light = on_light.sub(rec.p.clone());
+                // let dist_squared = to_light.squared_length();
+                // to_light = Vec3::unit_vector(&to_light);
+                // if to_light.dot(&rec.normal) < 0.0 {
+                //     return emitted;
+                // }
+                // let light_area = (343.0 - 213.0) * (332.0 - 227.0);
+                // let light_cos = to_light.y.abs();
+                // if light_cos < 0.000001 {
+                //     return emitted;
+                // }
+                // pdf = dist_squared / (light_cos * light_area);
+
+                //let p0 = Arc::new(HittablePdf::new(lights.clone(), &rec.p));
+                //let p1 = Arc::new(CosinePdf::new(&rec.normal));
+                let mixed_pdf = MixturePdf::new(light_ptr.clone(), srec.pdf_ptr.clone());
+
+                let pig = Ray::new2(&rec.p, &mixed_pdf.generate(), self.time);
+                scattered.time = pig.time;
+                scattered.dire = pig.dire.clone();
+                scattered.orig = pig.orig.clone();
+                //pdf_val = light_pdf.value(scattered.direction());
+                let pdf_val = mixed_pdf.value(&scattered.dire);
+
+                return emitted.add(
+                    srec.attenuation
+                        .mul((rec.mat_ptr.scattering_pdf(&self, &rec, &mut scattered)))
+                        .mul(scattered.ray_color(&background, world, lights, depth - 1))
+                        / (pdf_val),
+                );
             }
             return emitted;
         }
@@ -276,6 +350,14 @@ impl Hittable for Translate {
         output_box.minimum = output_box.minimum.add(self.offset.clone());
         output_box.maximum = output_box.maximum.add(self.offset.clone());
         true
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
     }
 }
 
@@ -368,5 +450,51 @@ impl Hittable for RotateY {
         output_box.minimum = self.bbox.minimum.clone();
         output_box.maximum = self.bbox.maximum.clone();
         self.has_hezi
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
+}
+
+pub struct FlipFace {
+    pub ptr: Arc<dyn Hittable>,
+}
+
+impl FlipFace {
+    pub fn new_zero() -> FlipFace {
+        FlipFace {
+            ptr: Arc::new(Sphere::new_zero()),
+        }
+    }
+
+    pub fn new(p: Arc<dyn Hittable>) -> FlipFace {
+        FlipFace { ptr: p.clone() }
+    }
+}
+
+impl Hittable for FlipFace {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+        if !self.ptr.hit(r, t_min, t_max, rec) {
+            return false;
+        }
+        rec.front_face = !rec.front_face;
+        true
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
+        self.ptr.bounding_box(time0, time1, output_box)
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
     }
 }

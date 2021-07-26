@@ -8,6 +8,8 @@ mod constant_medium;
 mod hittable_list;
 mod matirial;
 mod moving_sphere;
+mod onb;
+mod pdf;
 mod perlin;
 mod rtweekend;
 mod texture;
@@ -21,11 +23,12 @@ use crate::rtweekend::{
     clamp, cornell_box, cornell_smoke, earth, final_scene, random_secne, simple_light,
     two_perlin_spheres, two_spheres,
 };
-use crate::RAY::Sphere;
+use crate::RAY::{Hittable, Sphere};
 use core::fmt::Alignment::Center;
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 //pub use ray::Ray;
+use crate::aarect_h::XzRect;
 use image::imageops::FilterType::Lanczos3;
 use std::f64::consts::PI;
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
@@ -40,7 +43,7 @@ fn main() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 500;
+    let mut samples_per_pixels: u32 = 1000;
     let max_depth = 100;
     //world
     let R = (PI / 4.0).cos();
@@ -51,7 +54,7 @@ fn main() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::zero();
 
-    let mut case = 7;
+    let mut case = 5;
     if case == 0 {
         world = random_secne();
         background = Vec3::new(0.7, 0.8, 1.0);
@@ -136,6 +139,17 @@ fn main() {
     );
     //render
 
+    //shared_ptr<hittable> lights =
+    //         make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
+    // let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
+    //     213.0,
+    //     343.0,
+    //     227.0,
+    //     332.0,
+    //     554.0,
+    //     Arc::new(Lambertian::new_zero()),
+    // ));
+
     let (tx, rx) = channel();
     let n_jobs = 32;
     let n_workers = 6;
@@ -144,11 +158,26 @@ fn main() {
     let mut results: RgbImage = ImageBuffer::new(image_width as u32, image_height as u32);
     let bar = ProgressBar::new(n_jobs as u64);
 
+    //多线程渲染
     for i in 0..n_jobs {
         let tx = tx.clone();
         let world_ = world.clone();
         //let lights_ptr = lights.clone();
         pool.execute(move || {
+            let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
+                213.0,
+                343.0,
+                227.0,
+                332.0,
+                554.0,
+                Arc::new(Lambertian::new_zero()),
+            ));
+            // let lights: Arc<dyn Hittable> = Arc::new(Sphere {
+            //     center: Vec3::new(190.0, 90.0, 190.0),
+            //     radius: 90.0,
+            //     mat_ptr: Arc::new(Lambertian::new_zero()),
+            // });
+
             let row_begin = image_height as usize * i as usize / n_jobs;
             let row_end = image_height as usize * (i as usize + 1) / n_jobs;
             let render_height = row_end - row_begin;
@@ -163,9 +192,23 @@ fn main() {
                         let v: f64 = ((image_height - y) as f64 + random_double_0_1())
                             / ((image_height - 1) as f64);
                         let r = cam.get_ray(u, v);
-                        pixel_color.add_assign(r.ray_color(&background, &world_, max_depth));
+                        pixel_color.add_assign(r.ray_color(
+                            &background,
+                            &world_,
+                            &lights,
+                            max_depth,
+                        ));
                     }
                     let pixel = img.get_pixel_mut(x as u32, img_y as u32);
+                    // if pixel_color.x != pixel_color.x {
+                    //     pixel_color.x = 0.0
+                    // };
+                    // if pixel_color.y != pixel_color.y {
+                    //     pixel_color.y = 0.0
+                    // };
+                    // if pixel_color.z != pixel_color.z {
+                    //     pixel_color.z = 0.0
+                    // };
                     *pixel = image::Rgb([
                         pixel_color.get_u8_x(samples_per_pixels),
                         pixel_color.get_u8_y(samples_per_pixels),
@@ -178,6 +221,7 @@ fn main() {
         });
     }
 
+    //将图片写入
     for (rows, data) in rx.iter().take(n_jobs) {
         for (idx, row) in rows.enumerate() {
             for col in 0..image_width {

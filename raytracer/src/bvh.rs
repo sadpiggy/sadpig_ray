@@ -156,4 +156,12 @@ impl Hittable for BvhNode {
         output_box.minimum = self.hezi.minimum.clone();
         true
     }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
 }

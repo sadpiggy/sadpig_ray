@@ -1,8 +1,10 @@
 use crate::aabb::Aabb;
 use crate::matirial::Lambertian;
+use crate::rtweekend::random_double_a_b;
 use crate::RAY;
 use crate::RAY::{HitRecord, Hittable, Material, Ray};
 use crate::{rtweekend, Vec3};
+use std::f64::INFINITY;
 use std::sync::Arc;
 
 pub struct XyRect {
@@ -63,6 +65,14 @@ impl Hittable for XyRect {
         output_box.minimum = Vec3::new(self.x0, self.y0, self.k - 0.0001);
         output_box.maximum = Vec3::new(self.x1, self.y1, self.k + 0.0001);
         true
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
     }
 }
 
@@ -125,6 +135,26 @@ impl Hittable for XzRect {
         output_box.maximum = Vec3::new(self.x1, self.k + 0.0001, self.z1);
         true
     }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        let mut rec = HitRecord::new_blank(); //书上没有写ray 的time应该是多少 todo
+        if !self.hit(&Ray::new2(o, v, 0.0), 0.001, INFINITY, &mut rec) {
+            return 0.0;
+        }
+        let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+        let dist_squared = rec.t * rec.t * v.squared_length();
+        let cosine = (v.dot(&rec.normal) / v.length()).abs();
+        dist_squared / (cosine * area)
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let random_point = Vec3::new(
+            random_double_a_b(self.x0, self.x1),
+            self.k,
+            random_double_a_b(self.z0, self.z1),
+        );
+        random_point - o.clone()
+    }
 }
 
 pub struct YzRect {
@@ -185,5 +215,13 @@ impl Hittable for YzRect {
         output_box.minimum = Vec3::new(self.k - 0.0001, self.y0, self.z0);
         output_box.maximum = Vec3::new(self.k + 0.0001, self.y1, self.z1);
         true
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
     }
 }

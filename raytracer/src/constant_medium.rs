@@ -82,4 +82,12 @@ impl Hittable for ConstantMedium {
     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
         self.boundary.bounding_box(time0, time1, output_box)
     }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
 }

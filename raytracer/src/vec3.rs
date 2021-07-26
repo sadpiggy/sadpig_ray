@@ -261,6 +261,28 @@ impl Vec3 {
         p
     }
 
+    // inline vec3 random_to_sphere(double radius, double distance_squared) {
+    // auto r1 = random_double();
+    // auto r2 = random_double();
+    // auto z = 1 + r2*(sqrt(1-radius*radius/distance_squared) - 1);
+    //
+    // auto phi = 2*pi*r1;
+    // auto x = cos(phi)*sqrt(1-z*z);
+    // auto y = sin(phi)*sqrt(1-z*z);
+    //
+    // return vec3(x, y, z);
+    // }
+
+    pub fn random_to_sphere(radius: f64, dist_squared: f64) -> Vec3 {
+        let r1 = random_double_0_1();
+        let r2 = random_double_0_1();
+        let z = 1.0 + r2 * ((1.0 - radius * radius / dist_squared).sqrt() - 1.0);
+        let phi = 2.0 * (PI as f64) * r1;
+        let x = phi.cos() * ((1.0 - z * z).sqrt());
+        let y = phi.sin() * ((1.0 - z * z).sqrt());
+        Vec3::new(x, y, z)
+    }
+
     pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
         //反射
         let pig = n.mul(n.dot(v) * 2.0);
@@ -304,6 +326,16 @@ impl Vec3 {
     pub fn near_zero(&self) -> bool {
         let pig = 1e-8;
         (self.x).abs() < pig && (self.y).abs() < pig && (self.z).abs() < pig
+    }
+
+    pub fn random_cosine_dire() -> Vec3 {
+        let r1 = random_double_0_1();
+        let r2 = random_double_0_1();
+        let z = (1.0 - r2).sqrt();
+        let phi = 2.0 * (PI as f64) * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+        Vec3::new(x, y, z)
     }
 }
 

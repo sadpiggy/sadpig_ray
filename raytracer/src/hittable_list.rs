@@ -1,6 +1,7 @@
 use crate::aabb::Aabb;
 pub use crate::matirial::Material;
 use crate::moving_sphere::MovingSphere;
+use crate::rtweekend::random_int_a_b;
 pub use crate::vec3::Vec3;
 use crate::RAY::{HitRecord, Hittable, Ray};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
@@ -80,6 +81,23 @@ impl Hittable for HittableList {
             }
         }
         true
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        let weight = 1.0 / (self.objects.len() as f64);
+        let mut sum = 0.0;
+        for object in &self.objects {
+            sum += weight * object.pdf_value(o, v);
+        }
+        sum
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let int_size = self.objects.len() as i32;
+        self.objects
+            .get(random_int_a_b(0, int_size - 1) as usize)
+            .unwrap()
+            .random(o)
     }
 }
 
