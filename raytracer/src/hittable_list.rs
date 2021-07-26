@@ -95,7 +95,7 @@ impl Hittable for HittableList {
     fn random(&self, o: &Vec3) -> Vec3 {
         let int_size = self.objects.len() as i32;
         self.objects
-            .get(random_int_a_b(0, int_size - 1) as usize)
+            .get(random_int_a_b(0, int_size) as usize)
             .unwrap()
             .random(o)
     }

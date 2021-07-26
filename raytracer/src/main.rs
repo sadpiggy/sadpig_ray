@@ -43,8 +43,8 @@ fn main() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 1000;
-    let max_depth = 100;
+    let mut samples_per_pixels: u32 = 30;
+    let max_depth = 30;
     //world
     let R = (PI / 4.0).cos();
     let mut world: HittableList = HittableList::new_zero(); // HittableList { objects: vec![] };
@@ -164,19 +164,34 @@ fn main() {
         let world_ = world.clone();
         //let lights_ptr = lights.clone();
         pool.execute(move || {
-            let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
+            let mut motherfuck = HittableList::new_zero();
+            motherfuck.add(Arc::new(XzRect::new(
                 213.0,
                 343.0,
                 227.0,
                 332.0,
                 554.0,
                 Arc::new(Lambertian::new_zero()),
-            ));
+            )));
+            motherfuck.add(Arc::new(Sphere {
+                center: Vec3::new(190.0, 90.0, 190.0),
+                radius: 90.0,
+                mat_ptr: Arc::new(Lambertian::new_zero()),
+            }));
+            // let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
+            //     213.0,
+            //     343.0,
+            //     227.0,
+            //     332.0,
+            //     554.0,
+            //     Arc::new(Lambertian::new_zero()),
+            // ));
             // let lights: Arc<dyn Hittable> = Arc::new(Sphere {
             //     center: Vec3::new(190.0, 90.0, 190.0),
             //     radius: 90.0,
             //     mat_ptr: Arc::new(Lambertian::new_zero()),
             // });
+            let lights: Arc<dyn Hittable> = Arc::new(motherfuck);
 
             let row_begin = image_height as usize * i as usize / n_jobs;
             let row_end = image_height as usize * (i as usize + 1) / n_jobs;
