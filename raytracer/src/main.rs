@@ -54,7 +54,7 @@ fn main() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::zero();
 
-    let mut case = 5;
+    let mut case = 1;
     if case == 0 {
         world = random_secne();
         background = Vec3::new(0.7, 0.8, 1.0);
@@ -137,18 +137,6 @@ fn main() {
         0.0,
         1.0,
     );
-    //render
-
-    //shared_ptr<hittable> lights =
-    //         make_shared<xz_rect>(213, 343, 227, 332, 554, shared_ptr<material>());
-    // let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
-    //     213.0,
-    //     343.0,
-    //     227.0,
-    //     332.0,
-    //     554.0,
-    //     Arc::new(Lambertian::new_zero()),
-    // ));
 
     let (tx, rx) = channel();
     let n_jobs = 32;
@@ -178,19 +166,6 @@ fn main() {
                 radius: 90.0,
                 mat_ptr: Arc::new(Lambertian::new_zero()),
             }));
-            // let lights: Arc<dyn Hittable> = Arc::new(XzRect::new(
-            //     213.0,
-            //     343.0,
-            //     227.0,
-            //     332.0,
-            //     554.0,
-            //     Arc::new(Lambertian::new_zero()),
-            // ));
-            // let lights: Arc<dyn Hittable> = Arc::new(Sphere {
-            //     center: Vec3::new(190.0, 90.0, 190.0),
-            //     radius: 90.0,
-            //     mat_ptr: Arc::new(Lambertian::new_zero()),
-            // });
             let lights: Arc<dyn Hittable> = Arc::new(motherfuck);
 
             let row_begin = image_height as usize * i as usize / n_jobs;
@@ -215,15 +190,7 @@ fn main() {
                         ));
                     }
                     let pixel = img.get_pixel_mut(x as u32, img_y as u32);
-                    // if pixel_color.x != pixel_color.x {
-                    //     pixel_color.x = 0.0
-                    // };
-                    // if pixel_color.y != pixel_color.y {
-                    //     pixel_color.y = 0.0
-                    // };
-                    // if pixel_color.z != pixel_color.z {
-                    //     pixel_color.z = 0.0
-                    // };
+
                     *pixel = image::Rgb([
                         pixel_color.get_u8_x(samples_per_pixels),
                         pixel_color.get_u8_y(samples_per_pixels),
