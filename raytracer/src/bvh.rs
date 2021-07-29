@@ -39,7 +39,6 @@ impl BvhNode {
     ) -> BvhNode {
         let mut objects = src_objects.clone();
         let object_span = end - start;
-
         let axis = random_int_a_b(0, 2);
         let mut compare: fn(&Arc<dyn Hittable>, &Arc<dyn Hittable>) -> bool =
             BvhNode::box_x_compare;
@@ -92,11 +91,8 @@ impl BvhNode {
             println!("NO BOUNDING BOX IN BVH_NODE CONSTRUCT");
         }
 
-        //println!("box_l=={:?} and {:?}", box_l.minimum, box_l.maximum);
-        //println!("box_r.x=={} and {}", box_r.minimum.x, box_r.maximum.x);
-
         let her = MovingSphere::surrounding_box(&box_l, &box_r);
-        //println!("her=={:?} and {:?}", her.minimum, her.maximum);
+
         BvhNode {
             left,
             right,

@@ -5,10 +5,10 @@ use crate::onb::Onb;
 use crate::pdf::{CosinePdf, HittablePdf, PDF};
 pub use crate::rtweekend::clamp;
 use crate::rtweekend::schlick;
-use crate::texture::{SolidColor, Texture};
+use crate::texture::{SolidColor, SolidColorstatic, Texture, Texturestatic};
 use crate::Vec3;
 pub use crate::RAY::Sphere;
-use crate::RAY::{HitRecord, Ray};
+use crate::RAY::{HitRecord, HitRecordstatic, Ray, Raystatic};
 use std::alloc::handle_alloc_error;
 use std::collections::hash_map::Entry::Vacant;
 use std::f64::consts::PI;
@@ -41,6 +41,29 @@ impl ScatterRecord {
         pdf_ptr_: Arc<dyn PDF>,
     ) -> ScatterRecord {
         ScatterRecord {
+            specular_ray: specular_ray_,
+            is_specular: is_specular_,
+            attenuation: attenuation_,
+            pdf_ptr: pdf_ptr_,
+        }
+    }
+}
+
+pub struct ScatterRecordstatic<'a> {
+    pub specular_ray: Raystatic,
+    pub is_specular: bool,
+    pub attenuation: Vec3,
+    pub pdf_ptr: &'a dyn PDF,
+}
+
+impl<'a> ScatterRecordstatic<'a> {
+    pub fn new(
+        specular_ray_: Raystatic,
+        is_specular_: bool,
+        attenuation_: Vec3,
+        pdf_ptr_: &'a PDF,
+    ) -> ScatterRecordstatic {
+        ScatterRecordstatic {
             specular_ray: specular_ray_,
             is_specular: is_specular_,
             attenuation: attenuation_,
@@ -91,30 +114,6 @@ impl Material for Lambertian {
         srec.attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
         srec.pdf_ptr = Arc::new(CosinePdf::new(&rec.normal));
         true
-        // let mut uvw = Onb::new_zero();
-        // uvw.build_from_w(&rec.normal);
-        // let dire = uvw.local_2(&Vec3::random_cosine_dire());
-        //
-        // // let mut scatter_direction = rec.normal.add(Vec3::random_unit_vector());
-        // //todo
-        // // if scatter_direction.near_zero() {
-        // //     scatter_direction = rec.normal.clone();
-        // // }
-        // let mut pig = Ray::new2(&rec.p, &Vec3::unit_vector(&dire), r_in.time);
-        // scattered.time = pig.time;
-        // scattered.orig = pig.orig.clone();
-        // scattered.dire = pig.dire.clone();
-        // let dog = self.albedo.value(rec.u, rec.v, &rec.p);
-        // attenuation.x = dog.x;
-        // attenuation.y = dog.y;
-        // attenuation.z = dog.z;
-        //
-        // // println!("zhiqiande{}", pdf);
-        // *pdf = (uvw.w().dot(&scattered.dire) / PI);
-        //
-        // //println!("{}", pdf);
-        //
-        // true
     }
 
     fn scattering_pdf(&self, r_in: &Ray, rec: &HitRecord, scattered: &mut Ray) -> f64 {
@@ -134,6 +133,82 @@ impl Material for Lambertian {
         Vec3::zero()
     }
 }
+
+pub trait Materialstatic {
+    fn scatter(
+        &self,
+        r_in: &Raystatic,
+        rec: &HitRecordstatic,
+
+    ) -> Option<ScatterRecordstatic>;
+
+    fn scattering_pdf(
+        &self,
+        r_in: &Raystatic,
+        rec: &HitRecordstatic,
+        scattered: &mut Raystatic,
+    ) -> f64;
+
+    fn emitted(&self, r_in: &Raystatic, rec: &HitRecordstatic, u: f64, v: f64, p: &Vec3) -> Vec3;
+}
+
+pub struct Lambertianstatic<T: Texturestatic> {
+    pub albedo: T,
+}
+
+impl<T: Texturestatic> Lambertianstatic<T> {
+    pub fn new(a: &Vec3) -> Lambertianstatic<SolidColorstatic> {
+        Lambertianstatic {
+            albedo: (SolidColorstatic::new(a.clone())),
+        }
+    }
+
+    pub fn new1(a: T) -> Lambertianstatic<T> {
+        Lambertianstatic { albedo: a }
+    }
+
+    pub fn new_zero() -> Lambertianstatic<SolidColorstatic> {
+        Lambertianstatic {
+            albedo: SolidColorstatic::new(Vec3::zero()),
+        }
+    }
+}
+
+impl<T: Texturestatic> Materialstatic for Lambertianstatic<T> {
+    fn scatter(&self, r_in: &Raystatic, rec: &HitRecordstatic)->Option<ScatterRecordstatic>  {
+        srec.is_specular = false;
+        srec.attenuation = self.albedo.value(rec.u, rec.v, &rec.p);
+        srec.pdf_ptr = Arc::new(CosinePdf::new(&rec.normal));
+        true
+        ScatterRecordstatic{
+            specular_ray: Raystatic {},
+            is_specular: false,
+            attenuation:self.albedo.value(rec.u, rec.v, &rec.p),
+            pdf_ptr: &()
+        }
+    }
+
+    fn scattering_pdf(
+        &self,
+        r_in: &Raystatic,
+        rec: &HitRecordstatic,
+        scattered: &mut Raystatic,
+    ) -> f64 {
+        let cosine = rec.normal.dot(&Vec3::unit_vector(&scattered.dire));
+        if cosine < 0.0 {
+            return 0.0;
+        }
+        cosine / PI
+    }
+
+    fn emitted(&self, r_in: &Raystatic, rec: &HitRecordstatic, u: f64, v: f64, p: &Vec3) -> Vec3 {
+        Vec3::zero()
+    }
+}
+
+//pub trait Materialstatic: Material + fuzhi {}
+
+//impl<T: Texturestatic> Materialstatic for Lambertianstatic<T> {}
 
 pub struct Metal {
     pub albedo: Vec3,

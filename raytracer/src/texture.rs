@@ -43,6 +43,48 @@ impl Texture for SolidColor {
     }
 }
 
+impl Texture for SolidColorstatic {
+    fn value(&self, u: f64, n: f64, p: &Vec3) -> Vec3 {
+        self.color_value.clone()
+    }
+}
+
+impl Clone for SolidColorstatic {
+    fn clone(&self) -> Self {
+        SolidColorstatic {
+            color_value: self.color_value.clone(),
+        }
+    }
+}
+
+pub trait Texturestatic: Texture + std::clone::Clone {}
+
+pub struct SolidColorstatic {
+    pub color_value: Vec3,
+}
+
+impl SolidColorstatic {
+    pub fn new_zero() -> SolidColorstatic {
+        SolidColorstatic {
+            color_value: Vec3::zero(),
+        }
+    }
+
+    pub fn new(c: Vec3) -> SolidColorstatic {
+        SolidColorstatic { color_value: c }
+    }
+
+    pub fn new2(red: f64, green: f64, blue: f64) -> SolidColorstatic {
+        SolidColorstatic {
+            color_value: Vec3::new(red, green, blue),
+        }
+    }
+}
+
+impl Texturestatic for SolidColorstatic {
+    //应该未完成
+}
+
 pub struct CheckerTexture {
     pub odd: Arc<dyn Texture>,
     pub even: Arc<dyn Texture>,

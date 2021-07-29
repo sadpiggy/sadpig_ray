@@ -22,7 +22,7 @@ impl Aabb {
         }
     }
 }
-//todo
+
 impl Aabb {
     pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> bool {
         for a in 0..3 {
@@ -37,33 +37,10 @@ impl Aabb {
             }
             let pig1 = f_max(t0, t_min);
             let pig2 = f_min(t1, t_max);
-
-            // println!("pig1=={}", pig1);
-            // println!("pig2=={}", pig2);
-
             if pig2 <= pig1 {
-                //println!("caonima");
                 return false;
             }
         }
         true
     }
-    // pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> bool {
-    //     for a in 0..3 {
-    //         let t0 = f_min(
-    //             self.minimum.get_xyz(a) - r.orig.get_xyz(a) / r.dire.get_xyz(a),
-    //             self.maximum.get_xyz(a) - r.orig.get_xyz(a) / r.dire.get_xyz(a),
-    //         );
-    //         let t1 = f_max(
-    //             self.minimum.get_xyz(a) - r.orig.get_xyz(a) / r.dire.get_xyz(a),
-    //             self.maximum.get_xyz(a) - r.orig.get_xyz(a) / r.dire.get_xyz(a),
-    //         );
-    //         let pig_min = f_max(t0, t_min);
-    //         let pig_max = f_min(t1, t_max);
-    //         if pig_max <= pig_min {
-    //             return false;
-    //         }
-    //     }
-    //     true
-    // }
 }

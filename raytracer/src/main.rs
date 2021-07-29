@@ -43,8 +43,8 @@ fn main() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 30;
-    let max_depth = 30;
+    let mut samples_per_pixels: u32 = 50;
+    let max_depth = 50;
     //world
     let R = (PI / 4.0).cos();
     let mut world: HittableList = HittableList::new_zero(); // HittableList { objects: vec![] };
