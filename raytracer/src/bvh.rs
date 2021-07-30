@@ -1,4 +1,5 @@
 use crate::aabb::Aabb;
+use crate::hittable_list::HittableListstatic;
 use crate::matirial::Lambertian;
 use crate::moving_sphere::MovingSphere;
 use crate::rtweekend;
@@ -6,7 +7,7 @@ use crate::rtweekend::random_int_a_b;
 use crate::HittableList;
 use crate::Vec3;
 use crate::RAY;
-use crate::RAY::Ray;
+use crate::RAY::{HitRecordstatic, Hittablestatic, Ray, Spherestatic};
 use std::sync::Arc;
 use RAY::{HitRecord, Hittable, Sphere};
 
@@ -151,6 +152,140 @@ impl Hittable for BvhNode {
         output_box.maximum = self.hezi.maximum.clone();
         output_box.minimum = self.hezi.minimum.clone();
         true
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
+}
+
+pub struct BvhNodestatic {
+    pub left: Arc<dyn Hittablestatic>,
+    pub right: Arc<dyn Hittablestatic>,
+    pub hezi: Aabb,
+}
+
+impl BvhNodestatic {
+    pub fn new_dog(list: &HittableListstatic, time0: f64, time1: f64) -> BvhNodestatic {
+        BvhNodestatic::new_pig(&list.objects, 0, list.objects.len(), time0, time1)
+    }
+
+    pub fn new_pig(
+        src_objects: &Vec<Arc<dyn Hittablestatic>>,
+        start: usize,
+        end: usize,
+        time0: f64,
+        time1: f64,
+    ) -> BvhNodestatic {
+        let mut objects = src_objects.clone();
+        let object_span = end - start;
+        let axis = random_int_a_b(0, 2);
+        let mut compare: fn(&Arc<dyn Hittablestatic>, &Arc<dyn Hittablestatic>) -> bool =
+            BvhNodestatic::box_x_compare;
+        if axis == 0 {
+            compare = BvhNodestatic::box_x_compare;
+        }
+        if axis == 1 {
+            compare = BvhNodestatic::box_y_compare;
+        }
+        if axis == 2 {
+            compare = BvhNodestatic::box_z_compare;
+        }
+        let mut left: Arc<dyn Hittablestatic>; //= Arc::new(Sphere::new_zero());
+        let mut right: Arc<dyn Hittablestatic>; //= Arc::new(Sphere::new_zero());
+        if object_span == 1 {
+            left = objects[(start)].clone();
+            right = objects[(start)].clone();
+        } else if object_span == 2 {
+            if compare(&objects[(start)], &objects[(start + 1)]) {
+                left = objects[(start)].clone();
+                right = objects[(start + 1)].clone();
+            } else {
+                left = objects[(start + 1)].clone();
+                right = objects[(start)].clone();
+            }
+        } else {
+            //objects.sort_by(compare);
+            objects.sort_by(|a, b| {
+                let mut out_put_box = a.bounding_box(time0, time1);
+                let pig1 = (out_put_box);
+                let x = pig1.unwrap().minimum.get_xyz(axis); //可能会panic诶
+                let mut out_put_box2 = b.bounding_box(time0, time1);
+                let pig2 = (out_put_box2);
+                let y = pig2.unwrap().minimum.get_xyz(axis);
+                x.partial_cmp(&y).unwrap()
+            });
+
+            let mid = start + object_span / 2;
+            left = Arc::new(BvhNodestatic::new_pig(&objects, start, mid, time0, time1));
+            right = Arc::new(BvhNodestatic::new_pig(&objects, mid, end, time0, time1));
+        }
+        let mut box_l = left.bounding_box(time0, time1);
+        let mut box_r = right.bounding_box(time0, time1);
+        let her = MovingSphere::surrounding_box(&box_l.unwrap(), &box_r.unwrap());
+
+        BvhNodestatic {
+            left,
+            right,
+            hezi: her,
+        }
+    }
+}
+
+impl BvhNodestatic {
+    pub fn box_compare(
+        a: &Arc<dyn Hittablestatic>,
+        b: &Arc<dyn Hittablestatic>,
+        axis: i32,
+    ) -> bool {
+        let box_a = a.bounding_box(0.0, 0.0);
+        let box_b = b.bounding_box(0.0, 0.0);
+        let box_a = box_a.unwrap();
+        let box_b = box_b.unwrap();
+        box_a.minimum.get_xyz(axis) < box_b.minimum.get_xyz(axis)
+    }
+
+    pub fn box_x_compare(a: &Arc<dyn Hittablestatic>, b: &Arc<dyn Hittablestatic>) -> bool {
+        BvhNodestatic::box_compare(&a, &b, 0)
+    }
+
+    pub fn box_y_compare(a: &Arc<dyn Hittablestatic>, b: &Arc<dyn Hittablestatic>) -> bool {
+        BvhNodestatic::box_compare(&a, &b, 1)
+    }
+
+    pub fn box_z_compare(a: &Arc<dyn Hittablestatic>, b: &Arc<dyn Hittablestatic>) -> bool {
+        BvhNodestatic::box_compare(&a, &b, 2)
+    }
+}
+
+impl Hittablestatic for BvhNodestatic {
+    //todo
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
+        if !(self.hezi.hit(r, t_min, t_max)) {
+            return None;
+        }
+        if let Some(rec_mid) = self.left.hit(r, t_min, t_max) {
+            if let Some(rec_) = self.right.hit(r, t_min, rec_mid.t) {
+                return Some(rec_);
+            } else {
+                return Some(rec_mid);
+            }
+        }
+        if let Some(rec_mid) = self.right.hit(r, t_min, t_max) {
+            return Some(rec_mid);
+        }
+        None
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<Aabb> {
+        Some(Aabb {
+            minimum: self.hezi.minimum.clone(),
+            maximum: self.hezi.maximum.clone(),
+        })
     }
 
     fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {

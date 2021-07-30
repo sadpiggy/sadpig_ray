@@ -1,12 +1,21 @@
-use crate::aarect_h::{XyRect, XzRect, YzRect};
+use crate::aarect_h::{XyRect, XyRectstatic, XzRect, XzRectstatic, YzRect, YzRectstatic};
 use crate::bvh::BvhNode;
 use crate::constant_medium::ConstantMedium;
-use crate::matirial::{Dielectric, DiffuseLight, HittableList, Lambertian, Material, Metal};
+use crate::hittable_list::HittableListstatic;
+use crate::matirial::{
+    Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Lambertian,
+    Lambertianstatic, Material, Metal, Metalstatic,
+};
 use crate::moving_sphere::MovingSphere;
-use crate::texture::{CheckerTexture, ImageTexture, NoiseTexture};
+use crate::texture::{
+    CheckerTexture, CheckerTexturestatic, ImageTexture, NoiseTexture, SolidColorstatic,
+};
 use crate::Vec3;
-use crate::BOX_H::Hezi;
-use crate::RAY::{FlipFace, Hittable, RotateY, Sphere, Translate};
+use crate::BOX_H::{Hezi, Hezistatic};
+use crate::RAY::{
+    FlipFace, HitRecordstatic, Hittable, Hittablestatic, RotateY, RotateYstatic, Sphere,
+    Spherestatic, Translate, Translatestatic,
+};
 use rand::Rng;
 use std::collections::hash_map::Entry::Vacant;
 use std::f64::consts::PI;
@@ -279,7 +288,7 @@ pub fn cornell_box() -> HittableList {
     ));
     box1 = Arc::new(RotateY::new(box1, 15.0));
     box1 = Arc::new(Translate::new(box1, Vec3::new(265.0, 0.0, 295.0)));
-    objects.add(box1);
+    objects.add(box1); //todo
 
     // let mut box2: Arc<dyn Hittable> = Arc::new(Hezi::new(
     //     Vec3::zero(),
@@ -481,6 +490,82 @@ pub fn final_scene() -> HittableList {
         Arc::new(RotateY::new(rinima, 15.0)),
         Vec3::new(-100.0, 270.0, 395.0),
     )));
+
+    objects
+}
+
+pub fn two_spheres_static() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+    let checker = (CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
+
+    //let pertext = Arc::new(NoiseTexture::new());
+
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(0.0, -10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: (Lambertianstatic::new1(checker.clone())),
+    }));
+
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(0.0, 10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: (Lambertianstatic::new1(checker.clone())),
+    }));
+
+    objects
+}
+
+//todo hezi flipface
+
+pub fn cornell_box_static() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
+    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white2 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white3 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+    objects.add(Arc::new(YzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, green,
+    )));
+    objects.add(Arc::new(YzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 0.0, red,
+    )));
+
+    // objects.add(Arc::new(FlipFace::new(Arc::new(XzRect::new(
+    //     213.0, 343.0, 227.0, 332.0, 554.0, light,
+    // )))));
+    objects.add(Arc::new(XzRectstatic::new(
+        213.0, 343.0, 227.0, 332.0, 554.0, light,
+    )));
+    objects.add(Arc::new(XzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 0.0, white,
+    )));
+    objects.add(Arc::new(XzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, white1,
+    )));
+    objects.add(Arc::new(XyRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, white2,
+    )));
+
+    let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
+
+    let mut box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
+    let box1 = (RotateYstatic::new(box1, 15.0));
+    let box1: Arc<dyn Hittablestatic> =
+        Arc::new(Translatestatic::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    objects.add(box1);
+
+    let glass = (Dielectricstatic::new(1.5));
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(190.0, 90.0, 190.0),
+        radius: 90.0,
+        mat_ptr: glass,
+    }));
 
     objects
 }

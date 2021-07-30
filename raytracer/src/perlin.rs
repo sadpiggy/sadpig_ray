@@ -129,3 +129,15 @@ impl Perlin {
         accum.abs()
     }
 }
+
+impl Clone for Perlin {
+    fn clone(&self) -> Self {
+        Self {
+            point_count: self.point_count,
+            ranvec: self.ranvec.clone(),
+            perm_x: self.perm_x.clone(),
+            perm_y: self.perm_y.clone(),
+            perm_z: self.perm_z.clone(),
+        }
+    }
+}

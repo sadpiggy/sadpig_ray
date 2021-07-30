@@ -1,10 +1,8 @@
 use crate::camera::random_double_0_1;
-use crate::matirial::Lambertianstatic;
 use crate::onb::Onb;
-use crate::texture::SolidColorstatic;
 use crate::vec3;
 use crate::RAY;
-use crate::RAY::{Hittable, Hittablestatic, Sphere, Spherestatic};
+use crate::RAY::{Hittable, Hittablestatic, Sphere};
 use crate::{rtweekend, Vec3};
 use std::f64::consts::PI;
 use std::sync::Arc;
@@ -15,6 +13,8 @@ pub trait PDF {
     fn generate(&self) -> Vec3;
 }
 //impl Copy for std::sync::Arc<dyn PDF>{}
+
+pub trait PDFstatic: PDF + Clone {}
 
 pub struct CosinePdf {
     pub uvw: Onb,
@@ -44,6 +44,45 @@ impl PDF for CosinePdf {
         self.uvw.local_2(&Vec3::random_cosine_dire())
     }
 }
+
+pub struct CosinePdfstatic {
+    pub uvw: Onb,
+}
+
+impl CosinePdfstatic {
+    pub fn new_zero() -> CosinePdfstatic {
+        CosinePdfstatic {
+            uvw: Onb::new_zero(),
+        }
+    }
+
+    pub fn new(w: &Vec3) -> CosinePdfstatic {
+        let mut pig = Onb::new_zero();
+        pig.build_from_w(w);
+        CosinePdfstatic { uvw: pig }
+    }
+}
+
+impl PDF for CosinePdfstatic {
+    fn value(&self, dire: &Vec3) -> f64 {
+        let cosine = Vec3::unit_vector(dire).dot(&self.uvw.w());
+        return if cosine <= 0.0 { 0.0 } else { cosine / PI };
+    }
+
+    fn generate(&self) -> Vec3 {
+        self.uvw.local_2(&Vec3::random_cosine_dire())
+    }
+}
+
+impl Clone for CosinePdfstatic {
+    fn clone(&self) -> Self {
+        Self {
+            uvw: self.uvw.clone(),
+        }
+    }
+}
+
+impl PDFstatic for CosinePdfstatic {}
 
 pub struct HittablePdf {
     pub o: Vec3,
@@ -82,19 +121,8 @@ pub struct HittablePdfstatic<'a, T: Hittablestatic> {
 }
 
 impl<'a, T: Hittablestatic> HittablePdfstatic<'a, T> {
-    pub fn new_zero(
-        pig: &'a Spherestatic<Lambertianstatic<SolidColorstatic>>,
-    ) -> HittablePdfstatic<Spherestatic<Lambertianstatic<SolidColorstatic>>> {
-        //let pig = Spherestatic::<Lambertianstatic<SolidColorstatic>>::new_zero();
-        HittablePdfstatic {
-            o: Vec3::zero(),
-            ptr: pig,
-        }
-    }
-
-    //之后可能要完成clone之类的函数
-    pub fn new(p: &'a T, origin: &Vec3) -> HittablePdfstatic<'a, T> {
-        HittablePdfstatic {
+    pub fn new(p: &'a T, origin: &Vec3) -> Self {
+        Self {
             o: origin.clone(),
             ptr: p,
         }
@@ -110,6 +138,17 @@ impl<'a, T: Hittablestatic> PDF for HittablePdfstatic<'a, T> {
         self.ptr.random(&self.o)
     }
 }
+
+impl<'a, T: Hittablestatic> Clone for HittablePdfstatic<'a, T> {
+    fn clone(&self) -> Self {
+        Self {
+            o: self.o.clone(),
+            ptr: self.ptr,
+        }
+    }
+}
+
+impl<'a, T: Hittablestatic> PDFstatic for HittablePdfstatic<'a, T> {}
 
 pub struct MixturePdf {
     p0: Arc<dyn PDF>,
@@ -141,18 +180,18 @@ impl PDF for MixturePdf {
     }
 }
 
-pub struct MixturePdfstatic<'a, T0: PDF, T1: PDF> {
+pub struct MixturePdfstatic<'a, T0: PDFstatic, T1: PDFstatic> {
     p0: &'a T0,
     p1: &'a T1,
 }
 
-impl<'a, T0: PDF, T1: PDF> MixturePdfstatic<'a, T0, T1> {
+impl<'a, T0: PDFstatic, T1: PDFstatic> MixturePdfstatic<'a, T0, T1> {
     pub fn new(p0: &'a T0, p1: &'a T1) -> Self {
         Self { p0, p1 }
     }
 }
 
-impl<'a, T0: PDF, T1: PDF> PDF for MixturePdfstatic<'a, T0, T1> {
+impl<'a, T0: PDFstatic, T1: PDFstatic> PDF for MixturePdfstatic<'a, T0, T1> {
     fn value(&self, dire: &Vec3) -> f64 {
         return 0.5 * self.p0.value(dire) + 0.5 * self.p1.value(dire);
     }
@@ -164,6 +203,17 @@ impl<'a, T0: PDF, T1: PDF> PDF for MixturePdfstatic<'a, T0, T1> {
         self.p1.generate()
     }
 }
+
+impl<'a, T0: PDFstatic, T1: PDFstatic> Clone for MixturePdfstatic<'a, T0, T1> {
+    fn clone(&self) -> Self {
+        Self {
+            p0: self.p0,
+            p1: self.p1,
+        }
+    }
+}
+
+impl<'a, T0: PDFstatic, T1: PDFstatic> PDFstatic for MixturePdfstatic<'a, T0, T1> {}
 
 pub struct NonePdf {
     pub val: f64,
