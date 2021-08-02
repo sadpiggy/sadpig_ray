@@ -194,8 +194,8 @@ pub struct NoiseTexturestatic {
 }
 
 impl NoiseTexturestatic {
-    pub fn new(sc: f64) -> NoiseTexture {
-        NoiseTexture {
+    pub fn new(sc: f64) -> NoiseTexturestatic {
+        NoiseTexturestatic {
             noise: Perlin::new(),
             scale: sc,
         }
@@ -276,12 +276,12 @@ pub struct ImageTexturestatic {
 
 impl ImageTexturestatic {
     //这里以后可以改进//==现在不想改进
-    pub fn new(filename: &str) -> ImageTexture {
+    pub fn new(filename: &str) -> ImageTexturestatic {
         let mut pig = image::open(filename).unwrap();
         let w = image::GenericImageView::width(&pig);
         let h = image::GenericImageView::height(&pig);
 
-        ImageTexture {
+        ImageTexturestatic {
             data: pig,
             width: w,
             height: h,

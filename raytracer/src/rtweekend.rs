@@ -1,14 +1,15 @@
 use crate::aarect_h::{XyRect, XyRectstatic, XzRect, XzRectstatic, YzRect, YzRectstatic};
-use crate::bvh::BvhNode;
-use crate::constant_medium::ConstantMedium;
+use crate::bvh::{BvhNode, BvhNodestatic};
+use crate::constant_medium::{ConstantMedium, ConstantMediumstatic};
 use crate::hittable_list::HittableListstatic;
 use crate::matirial::{
     Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Lambertian,
     Lambertianstatic, Material, Metal, Metalstatic,
 };
-use crate::moving_sphere::MovingSphere;
+use crate::moving_sphere::{MovingSphere, MovingSpherestatic};
 use crate::texture::{
-    CheckerTexture, CheckerTexturestatic, ImageTexture, NoiseTexture, SolidColorstatic,
+    CheckerTexture, CheckerTexturestatic, ImageTexture, ImageTexturestatic, NoiseTexture,
+    NoiseTexturestatic, SolidColorstatic,
 };
 use crate::Vec3;
 use crate::BOX_H::{Hezi, Hezistatic};
@@ -566,6 +567,132 @@ pub fn cornell_box_static() -> HittableListstatic {
         radius: 90.0,
         mat_ptr: glass,
     }));
+
+    objects
+}
+
+pub fn final_scene_static() -> HittableListstatic {
+    let white = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73)));
+    let mut boxes1 = HittableListstatic::new_zero();
+    let mut objects = HittableListstatic::new_zero();
+    let ground = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.48, 0.83, 0.53)));
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + (i as f64) * w;
+            let z0 = -1000.0 + (j as f64) * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = random_double_a_b(1.0, 101.0);
+            let z1 = z0 + w;
+
+            boxes1.add(Arc::new(Hezistatic::new(
+                Vec3::new(x0, y0, z0),
+                Vec3::new(x1, y1, z1),
+                ground.clone(),
+            )));
+        }
+    }
+
+    objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+
+    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(7.0, 7.0, 7.0)));
+    objects.add(Arc::new(XzRectstatic::new(
+        123.0, 423.0, 147.0, 412.0, 554.0, light,
+    )));
+    //return objects;
+
+    let center1 = Vec3::new(400.0, 400.0, 200.0);
+    let center2 = center1.add(Vec3::new(30.0, 0.0, 0.0));
+    let moving_sphere_material =
+        (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.7, 0.3, 0.1)));
+    objects.add(Arc::new(MovingSpherestatic::new(
+        center1,
+        center2,
+        0.0,
+        1.0,
+        50.0,
+        moving_sphere_material,
+    )));
+
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(260.0, 150.0, 45.0),
+        radius: 50.0,
+        mat_ptr: (Dielectricstatic::new(1.5)),
+    }));
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(0.0, 150.0, 145.0),
+        radius: 50.0,
+        mat_ptr: (Metalstatic::new(&Vec3::new(0.8, 0.8, 0.9), 1.0)),
+    }));
+
+    let mut boundary = Arc::new(Spherestatic {
+        center: Vec3::new(360.0, 150.0, 145.0),
+        radius: 70.0,
+        mat_ptr: (Dielectricstatic::new(1.5)),
+    });
+    objects.add(boundary.clone());
+    let boundary = (Spherestatic {
+        center: Vec3::new(360.0, 150.0, 145.0),
+        radius: 70.0,
+        mat_ptr: (Dielectricstatic::new(1.5)),
+    });
+    objects.add(Arc::new(ConstantMediumstatic::new2(
+        boundary,
+        0.2,
+        Vec3::new(0.2, 0.4, 0.9),
+    )));
+    let boundary = (Spherestatic {
+        center: Vec3::new(0.0, 0.0, 0.0),
+        radius: 5000.0,
+        mat_ptr: (Dielectricstatic::new(1.5)),
+    });
+    objects.add(Arc::new(ConstantMediumstatic::new2(
+        boundary,
+        0.0001,
+        Vec3::new(1.0, 1.0, 1.0),
+    )));
+
+    let emat = Arc::new(Lambertianstatic::new1(
+        (ImageTexturestatic::new("input/me.png")),
+    ));
+    let pertext = (NoiseTexturestatic::new(0.1));
+    // objects.add(Arc::new(Sphere {
+    //     center: Vec3::new(400.0, 200.0, 400.0),
+    //     radius: 100.0,
+    //     mat_ptr: emat,
+    // }));
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(400.0, 200.0, 400.0),
+        radius: 100.0,
+        mat_ptr: (Lambertianstatic::new1(pertext.clone())),
+    }));
+
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(220.0, 280.0, 300.0),
+        radius: 80.0,
+        mat_ptr: (Lambertianstatic::new1(pertext)),
+    }));
+
+    let mut boxes2 = HittableListstatic::new_zero();
+    let white = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73)));
+    let ns = 1000;
+    for j in 0..ns {
+        boxes2.add(Arc::new(Spherestatic {
+            center: Vec3::random_v_a_b(0.0, 165.0),
+            radius: 10.0,
+            mat_ptr: white.clone(),
+        }))
+    }
+
+    let rinima = (BvhNodestatic::new_dog(&boxes2, 0.0, 1.0));
+
+    objects.add(Arc::new(Translatestatic::new(
+        (RotateYstatic::new(rinima, 15.0)),
+        Vec3::new(-100.0, 270.0, 395.0),
+    )));
 
     objects
 }

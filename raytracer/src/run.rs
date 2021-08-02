@@ -2,8 +2,8 @@ use crate::camera::{random_double_0_1, random_double_a_b, Camera};
 use crate::hittable_list::{HittableList, HittableListstatic};
 use crate::matirial::{Dielectric, Lambertian, Lambertianstatic, Material, Metal};
 use crate::rtweekend::{
-    clamp, cornell_box, cornell_box_static, cornell_smoke, earth, final_scene, random_secne,
-    simple_light, two_perlin_spheres, two_spheres, two_spheres_static,
+    clamp, cornell_box, cornell_box_static, cornell_smoke, earth, final_scene, final_scene_static,
+    random_secne, simple_light, two_perlin_spheres, two_spheres, two_spheres_static,
 };
 use crate::RAY::{Hittable, Hittablestatic, Sphere, Spherestatic};
 use core::fmt::Alignment::Center;
@@ -27,8 +27,8 @@ pub fn Run() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 250;
-    let max_depth = 50;
+    let mut samples_per_pixels: u32 = 20;
+    let max_depth = 10;
     //world
     let R = (PI / 4.0).cos();
 
@@ -40,7 +40,7 @@ pub fn Run() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::zero();
 
-    let mut case = 5;
+    let mut case = 7;
     if case == 0 {
         world = random_secne();
         background = Vec3::new(0.7, 0.8, 1.0);
@@ -222,8 +222,8 @@ pub fn Runstatic() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 500;
-    let max_depth = 50;
+    let mut samples_per_pixels: u32 = 20;
+    let max_depth = 20;
     //world
     let R = (PI / 4.0).cos();
 
@@ -233,9 +233,9 @@ pub fn Runstatic() {
     let mut aperture_ = 0.0;
     let mut look_from_: Vec3 = Vec3::zero(); // = (Vec3::new(12.0, 2.0, 3.0));
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
-    let mut background = Vec3::zero();
+    let mut background = Vec3::new(0.93, 0.93, 0.93);
 
-    let mut case = 1;
+    let mut case = 2;
 
     if case == 0 {
         world = two_spheres_static();
@@ -253,6 +253,16 @@ pub fn Runstatic() {
         vfov_ = 40.0;
         aspect_ratio_ = 1.0;
         image_width = 600;
+        image_height = image_width;
+    }
+    if case == 2 {
+        world = final_scene_static();
+        background = Vec3::new(0.0, 0.0, 0.0);
+        look_from_ = Vec3::new(478.0, 278.0, -600.0);
+        look_at_ = Vec3::new(278.0, 278.0, 0.0);
+        vfov_ = 40.0;
+        aspect_ratio_ = 1.0;
+        image_width = 800;
         image_height = image_width;
     }
 
@@ -295,7 +305,7 @@ pub fn Runstatic() {
                 ),
             ));
             motherfuck.add(Arc::new(Spherestatic {
-                center: Vec3::new(190.0, 90.0, 190.0),
+                center: Vec3::new(360.0, 150.0, 145.0),
                 radius: 90.0,
                 mat_ptr: (Lambertianstatic::<SolidColorstatic>::new_zero()),
             }));
