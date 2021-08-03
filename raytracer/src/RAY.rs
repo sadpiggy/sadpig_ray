@@ -283,7 +283,7 @@ impl Hittable for Sphere {
         }
         let cos_max = (1.0
             - self.radius * self.radius / (self.center.sub(o.clone()).squared_length()))
-        .sqrt();
+            .sqrt();
         let solid_angle = (PI as f64) * 2.0 * (1.0 - cos_max);
         1.0 / solid_angle
     }
@@ -323,8 +323,8 @@ impl Ray {
                 if srec.is_specular {
                     return srec.attenuation
                         * srec
-                            .specular_ray
-                            .ray_color(background, world, lights, depth - 1);
+                        .specular_ray
+                        .ray_color(background, world, lights, depth - 1);
                 }
                 let light_ptr = Arc::new(HittablePdf::new(lights.clone(), &rec.p));
                 let mixed_pdf = MixturePdf::new(light_ptr.clone(), srec.pdf_ptr.clone());
@@ -378,8 +378,8 @@ impl Ray {
                 if srec.is_specular {
                     return srec.attenuation
                         * srec
-                            .specular_ray
-                            .ray_color_static(background, world, lights, depth - 1);
+                        .specular_ray
+                        .ray_color_static(background, world, lights, depth - 1);
                 }
                 let light_ptr = (HittablePdfstatic::new(lights, &rec.p));
                 let mixed_pdf = MixturePdfstatic::new(&light_ptr, &srec.pdf_ptr);
@@ -686,7 +686,7 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
             Some(rec_) => {
                 let cos_max = (1.0
                     - self.radius * self.radius / (self.center.sub(o.clone()).squared_length()))
-                .sqrt();
+                    .sqrt();
                 let solid_angle = (PI as f64) * 2.0 * (1.0 - cos_max);
                 return 1.0 / solid_angle;
             }

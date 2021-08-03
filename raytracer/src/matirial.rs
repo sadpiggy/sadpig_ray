@@ -416,7 +416,7 @@ impl Materialstatic for Metalstatic {
         let pipixia = Ray::new2(
             &rec.p,
             &(reflected + (Vec3::random_in_unit_sphere()) * self.fuzz),
-            0.0,
+            r_in.time,
         ); //time默认值是多少来着
         Option::from(ScatterRecordstatic {
             specular_ray: pipixia,
@@ -565,7 +565,15 @@ impl<T: Texturestatic> Materialstatic for DiffuseLightstatic<T> {
 
     //todo
     fn emitted(&self, r_in: &Ray, rec: &HitRecordstatic, u: f64, v: f64, p: &Vec3) -> Vec3 {
-        self.emit.value(u, v, p)
+        //self.emit.value(u, v, p)
+        // if r_in.dire.dot(&rec.normal) < 0.0 {
+        if !rec.front_face {
+            return self.emit.value(u, v, p);
+        }
+        Vec3::zero()
+        //} else {
+        //  Vec3::zero()
+        //}
     }
 }
 

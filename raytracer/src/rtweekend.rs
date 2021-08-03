@@ -1,4 +1,6 @@
-use crate::aarect_h::{XyRect, XyRectstatic, XzRect, XzRectstatic, YzRect, YzRectstatic};
+use crate::aarect_h::{
+    Trianglestatic, XyRect, XyRectstatic, XzRect, XzRectstatic, YzRect, YzRectstatic,
+};
 use crate::bvh::{BvhNode, BvhNodestatic};
 use crate::constant_medium::{ConstantMedium, ConstantMediumstatic};
 use crate::hittable_list::HittableListstatic;
@@ -23,6 +25,7 @@ use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
 use std::sync::atomic::Ordering::AcqRel;
 use std::sync::Arc;
+use tobj;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
@@ -40,6 +43,16 @@ pub fn f_max(v1: f64, v2: f64) -> f64 {
         return v1;
     }
     v2
+}
+
+pub fn f_3_min(v0: f64, v1: f64, v2: f64) -> f64 {
+    let a = f_min(v0, v1);
+    f_min(a, v2)
+}
+
+pub fn f_3_max(v0: f64, v1: f64, v2: f64) -> f64 {
+    let a = f_max(v0, v1);
+    f_max(a, v2)
 }
 
 pub fn random_double_0_1() -> f64 {
@@ -65,6 +78,11 @@ pub fn clamp(x: f64, min: f64, max: f64) -> f64 {
         return max;
     };
     x
+}
+
+pub fn get_triangle_uv(v_ab: Vec3, v_bc: Vec3, v_ap: Vec3, v_bp: Vec3, u: &mut f64, v: &mut f64) {
+    *u = (v_ab.dot(&v_ap)) / v_ab.length();
+    *v = (v_bc.dot(&v_bp)) / v_bc.length();
 }
 
 pub fn schlick(cosine: f64, ref_idx: f64) -> f64 {
@@ -693,6 +711,163 @@ pub fn final_scene_static() -> HittableListstatic {
         (RotateYstatic::new(rinima, 15.0)),
         Vec3::new(-100.0, 270.0, 395.0),
     )));
+
+    objects
+}
+
+pub fn get_obj_test() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let metal = (Metalstatic::new(&Vec3::new(0.3, 0.8, 0.9), 1.0));
+    let checker = (CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
+        Vec3::new(0.2, 0.3, 0.1),
+        Vec3::new(0.9, 0.9, 0.9),
+    ));
+
+    //let pertext = Arc::new(NoiseTexture::new());
+
+    objects.add(Arc::new(Trianglestatic {
+        p0: Vec3::new(0.0, 0.0, 0.0),
+        p1: Vec3::new(-20.0, -10.0, 0.0),
+        p2: Vec3::new(20.0, -10.0, 0.0),
+        mat_ptr: green,
+    }));
+
+    // objects.add(Arc::new(Spherestatic {
+    //     center: Vec3::new(0.0, -10.0, 0.0),
+    //     radius: 10.0,
+    //     mat_ptr: green,
+    // }));
+
+    objects.add(Arc::new(Spherestatic {
+        center: Vec3::new(0.0, 10.0, 0.0),
+        radius: 10.0,
+        mat_ptr: (Lambertianstatic::new1(checker.clone())),
+    }));
+
+    objects
+}
+
+pub fn get_obj(filename: &str, rate: f64) -> HittableListstatic {
+    let mut objects = HittableListstatic::new_zero();
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let cornell_box = tobj::load_obj(
+        //buddle
+        filename,
+        &tobj::LoadOptions {
+            single_index: true,
+            triangulate: true,
+            ..Default::default()
+        },
+    );
+    assert!(cornell_box.is_ok());
+    // let rate = 10.0 * 10.0 * 1.9;
+    let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
+    let mut boxes1 = HittableListstatic::new_zero();
+    for (_i, m) in models.iter().enumerate() {
+        let mut boxes2 = HittableListstatic::new_zero();
+        let mesh = &m.mesh;
+        for v in 0..mesh.indices.len() / 3 {
+            let x1 = mesh.indices[3 * v];
+            let x2 = mesh.indices[3 * v + 1];
+            let x3 = mesh.indices[3 * v + 2];
+            let triange = Trianglestatic::new(
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x1) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x1 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x1 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x2) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x2 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x2 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x3) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x3 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x3 + 2) as usize] as f64,
+                },
+                (Metalstatic::new(&Vec3::new(0.99, 0.78, 0.0), 0.1)),
+            );
+            boxes2.add(Arc::new(triange));
+        }
+
+        objects.add(Arc::new(BvhNodestatic::new_dog(&boxes2, 0.0, 1.0)));
+    }
+    //objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+    //objects.add(Arc::new(boxes1));
+    objects
+    //bvh 写出问题来了
+}
+
+pub fn cornell_table_static() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
+    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white2 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white3 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+
+    // let allin = Translatestatic::new(
+    //     get_obj("input/Tree low.obj",3.0),
+    //     Vec3::new(260.0, 0.0, 190.0),
+    // );
+
+    let allin = Translatestatic::new(
+        get_obj("input/deer.obj", 0.2),
+        Vec3::new(260.0, 50.0, 290.0),
+    );
+    let allin = RotateYstatic::new(allin, 90.0);
+
+    objects.add(Arc::new(allin));
+
+    objects.add(Arc::new(YzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, green,
+    )));
+    objects.add(Arc::new(YzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 0.0, red,
+    )));
+
+    // objects.add(Arc::new(FlipFace::new(Arc::new(XzRect::new(
+    //     213.0, 343.0, 227.0, 332.0, 554.0, light,
+    // )))));
+    objects.add(Arc::new(XzRectstatic::new(
+        213.0, 343.0, 227.0, 332.0, 554.0, light,
+    )));
+    objects.add(Arc::new(XzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 0.0, white,
+    )));
+    objects.add(Arc::new(XzRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, white1,
+    )));
+    objects.add(Arc::new(XyRectstatic::new(
+        0.0, 555.0, 0.0, 555.0, 555.0, white2,
+    )));
+
+    let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
+
+    let mut box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
+    let box1 = (RotateYstatic::new(box1, 15.0));
+    let box1: Arc<dyn Hittablestatic> =
+        Arc::new(Translatestatic::new(box1, Vec3::new(265.0, 0.0, 295.0)));
+    objects.add(box1);
+
+    // let glass = (Dielectricstatic::new(1.5));
+    // objects.add(Arc::new(Spherestatic {
+    //     center: Vec3::new(190.0, 90.0, 190.0),
+    //     radius: 90.0,
+    //     mat_ptr: glass,
+    // }));
+
+    objects
+}
+
+pub fn dinosaur_static() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+
+    objects.add(Arc::new(get_obj("input/dinosaur.2k.obj", 1.0)));
 
     objects
 }

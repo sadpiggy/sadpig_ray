@@ -1,8 +1,10 @@
 use crate::aabb::Aabb;
 use crate::matirial::{Lambertian, Materialstatic};
-use crate::rtweekend::random_double_a_b;
+use crate::rtweekend::{f_3_max, f_3_min, get_triangle_uv, random_double_a_b};
 use crate::RAY;
-use crate::RAY::{HitRecord, HitRecordstatic, Hittable, Hittablestatic, Material, Ray};
+use crate::RAY::{
+    get_sphere_uv, HitRecord, HitRecordstatic, Hittable, Hittablestatic, Material, Ray,
+};
 use crate::{rtweekend, Vec3};
 use std::f64::INFINITY;
 use std::ops::Mul;
@@ -475,5 +477,93 @@ impl<T: Materialstatic> Hittablestatic for YzRectstatic<T> {
             random_double_a_b(self.z0, self.z1),
         );
         random_point - o.clone()
+    }
+}
+
+pub struct Trianglestatic<T: Materialstatic> {
+    pub p0: Vec3,
+    pub p1: Vec3,
+    pub p2: Vec3,
+    pub mat_ptr: T,
+}
+
+impl<T: Materialstatic> Trianglestatic<T> {
+    pub fn new(p0_: Vec3, p1_: Vec3, p2_: Vec3, mat_ptr_: T) -> Self {
+        Self {
+            p0: p0_,
+            p1: p1_,
+            p2: p2_,
+            mat_ptr: mat_ptr_,
+        }
+    }
+}
+
+impl<T: Materialstatic> Hittablestatic for Trianglestatic<T> {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
+        let direct1 = self.p1 - self.p0;
+        let direct2 = self.p2 - self.p0;
+        let n = Vec3::unit_vector(&direct1.cross(&direct2));
+        let b_a = self.p0 - r.orig;
+        let t = n.dot(&b_a) / n.dot(&r.dire);
+        if t < t_min || t > t_max {
+            return None;
+        }
+        let r_ = r.at(t);
+        if Vec3::sameside(self.p0, self.p1, self.p2, r_)
+            && Vec3::sameside(self.p1, self.p2, self.p0, r_)
+            && Vec3::sameside(self.p2, self.p0, self.p1, r_)
+        {
+            let outward_normal = n;
+            let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+            let mut flag = 1.0;
+            if !front_face {
+                flag = -1.0;
+            }
+            let v_ab = self.p1 - self.p0;
+            let v_bc = self.p2 - self.p1;
+            let v_ap = r.at(t) - self.p0;
+            let v_bp = r.at(t) - self.p1;
+
+            let mut u = 0.0;
+            let mut v = 0.0;
+            get_triangle_uv(v_ab, v_bc, v_ap, v_bp, &mut u, &mut v);
+
+            // println!("{}", flag);
+
+            return Some(HitRecordstatic {
+                p: r.at(t),
+                normal: outward_normal.mul(flag), //todo
+                t,
+                front_face: front_face,
+                mat_ptr: &(self.mat_ptr),
+                u,
+                v,
+            });
+        } else {
+            None
+        }
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<Aabb> {
+        Some(Aabb {
+            minimum: Vec3::new(
+                f_3_min(self.p0.x, self.p1.x, self.p2.x),
+                f_3_min(self.p0.y, self.p1.y, self.p2.y),
+                f_3_min(self.p0.z, self.p1.z, self.p2.z),
+            ) + Vec3::new(0.01, 0.01, 0.01),
+            maximum: Vec3::new(
+                f_3_max(self.p0.x, self.p1.x, self.p2.x),
+                f_3_max(self.p0.y, self.p1.y, self.p2.y),
+                f_3_max(self.p0.z, self.p1.z, self.p2.z),
+            ) - Vec3::new(0.01, 0.01, 0.01),
+        })
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
     }
 }

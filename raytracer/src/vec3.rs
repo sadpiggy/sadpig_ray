@@ -35,6 +35,16 @@ impl Vec3 {
     pub fn squared_length(&self) -> f64 {
         self.x * self.x + self.y * self.y + self.z * self.z
     }
+
+    pub fn sameside(a: Vec3, b: Vec3, c: Vec3, p: Vec3) -> bool {
+        let ab = b - a;
+        let ac = c - a;
+        let ap = p - a;
+
+        let v1 = ab.cross(&ac);
+        let v2 = ab.cross(&ap);
+        v1.dot(&v2) >= 0.0
+    }
 }
 
 impl Vec3 {
