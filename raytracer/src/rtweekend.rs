@@ -5,8 +5,8 @@ use crate::bvh::{BvhNode, BvhNodestatic};
 use crate::constant_medium::{ConstantMedium, ConstantMediumstatic};
 use crate::hittable_list::HittableListstatic;
 use crate::matirial::{
-    Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Lambertian,
-    Lambertianstatic, Material, Metal, Metalstatic,
+    Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Iostropicstatic,
+    Lambertian, Lambertianstatic, Material, Materialstatic, Metal, Metalstatic,
 };
 use crate::moving_sphere::{MovingSphere, MovingSpherestatic};
 use crate::texture::{
@@ -16,8 +16,8 @@ use crate::texture::{
 use crate::Vec3;
 use crate::BOX_H::{Hezi, Hezistatic};
 use crate::RAY::{
-    FlipFace, HitRecordstatic, Hittable, Hittablestatic, RotateY, RotateYstatic, Sphere,
-    Spherestatic, Translate, Translatestatic,
+    FlipFace, FlipFacestatic, HitRecordstatic, Hittable, Hittablestatic, RotateXstatic, RotateY,
+    RotateYstatic, Sphere, Spherestatic, Translate, Translatestatic,
 };
 use rand::Rng;
 use std::collections::hash_map::Entry::Vacant;
@@ -750,7 +750,9 @@ pub fn get_obj_test() -> HittableListstatic {
 
 pub fn get_obj(filename: &str, rate: f64) -> HittableListstatic {
     let mut objects = HittableListstatic::new_zero();
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    //let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    //let green = (Iostropicstatic::<SolidColorstatic>::new((Vec3::new(0.12, 0.45, 0.15))));
+    let green = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(0.17, 2.06, 1.3));
     let cornell_box = tobj::load_obj(
         //buddle
         filename,
@@ -787,7 +789,118 @@ pub fn get_obj(filename: &str, rate: f64) -> HittableListstatic {
                     y: rate * mesh.positions[(3 * x3 + 1) as usize] as f64,
                     z: rate * mesh.positions[(3 * x3 + 2) as usize] as f64,
                 },
-                (Metalstatic::new(&Vec3::new(0.99, 0.78, 0.0), 0.1)),
+                //(Metalstatic::new(&Vec3::new(0.99, 0.78, 0.0), 0.1)),
+                green.clone(),
+            );
+            boxes2.add(Arc::new(triange));
+        }
+
+        objects.add(Arc::new(BvhNodestatic::new_dog(&boxes2, 0.0, 1.0)));
+    }
+    //objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+    //objects.add(Arc::new(boxes1));
+    objects
+    //bvh 写出问题来了
+}
+
+pub fn get_obj2(filename: &str, rate: f64) -> HittableListstatic {
+    let mut objects = HittableListstatic::new_zero();
+    //let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    //let green = (Iostropicstatic::<SolidColorstatic>::new((Vec3::new(0.12, 0.45, 0.15))));
+    //let green = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(0.17, 2.06, 1.3));
+    let green = (Metalstatic::new(&Vec3::new(0.12, 0.45, 0.15), 0.1));
+    let cornell_box = tobj::load_obj(
+        //buddle
+        filename,
+        &tobj::LoadOptions {
+            single_index: true,
+            triangulate: true,
+            ..Default::default()
+        },
+    );
+    assert!(cornell_box.is_ok());
+    // let rate = 10.0 * 10.0 * 1.9;
+    let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
+    let mut boxes1 = HittableListstatic::new_zero();
+    for (_i, m) in models.iter().enumerate() {
+        let mut boxes2 = HittableListstatic::new_zero();
+        let mesh = &m.mesh;
+        for v in 0..mesh.indices.len() / 3 {
+            let x1 = mesh.indices[3 * v];
+            let x2 = mesh.indices[3 * v + 1];
+            let x3 = mesh.indices[3 * v + 2];
+            let triange = Trianglestatic::new(
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x1) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x1 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x1 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x2) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x2 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x2 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x3) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x3 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x3 + 2) as usize] as f64,
+                },
+                green.clone(),
+            );
+            boxes2.add(Arc::new(triange));
+        }
+
+        objects.add(Arc::new(BvhNodestatic::new_dog(&boxes2, 0.0, 1.0)));
+    }
+    //objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+    //objects.add(Arc::new(boxes1));
+    objects
+    //bvh 写出问题来了
+}
+
+pub fn get_obj_grass(filename: &str, rate: f64, color: Vec3) -> HittableListstatic {
+    let mut objects = HittableListstatic::new_zero();
+    //let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    //let green = (Iostropicstatic::<SolidColorstatic>::new((Vec3::new(0.12, 0.45, 0.15))));
+    //let green = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(0.17, 2.06, 1.3));Vec3::new(0.83, 0.45, 0.27)
+    let green = (Metalstatic::new(&color, 0.1));
+    let cornell_box = tobj::load_obj(
+        //buddle
+        filename,
+        &tobj::LoadOptions {
+            single_index: true,
+            triangulate: true,
+            ..Default::default()
+        },
+    );
+    assert!(cornell_box.is_ok());
+    // let rate = 10.0 * 10.0 * 1.9;
+    let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
+    let mut boxes1 = HittableListstatic::new_zero();
+    for (_i, m) in models.iter().enumerate() {
+        let mut boxes2 = HittableListstatic::new_zero();
+        let mesh = &m.mesh;
+        for v in 0..mesh.indices.len() / 3 {
+            let x1 = mesh.indices[3 * v];
+            let x2 = mesh.indices[3 * v + 1];
+            let x3 = mesh.indices[3 * v + 2];
+            let triange = Trianglestatic::new(
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x1) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x1 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x1 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x2) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x2 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x2 + 2) as usize] as f64,
+                },
+                Vec3 {
+                    x: rate * mesh.positions[(3 * x3) as usize] as f64,
+                    y: rate * mesh.positions[(3 * x3 + 1) as usize] as f64,
+                    z: rate * mesh.positions[(3 * x3 + 2) as usize] as f64,
+                },
+                green.clone(),
             );
             boxes2.add(Arc::new(triange));
         }
@@ -839,9 +952,16 @@ pub fn cornell_table_static() -> HittableListstatic {
     objects.add(Arc::new(XzRectstatic::new(
         0.0, 555.0, 0.0, 555.0, 0.0, white,
     )));
+
     objects.add(Arc::new(XzRectstatic::new(
-        0.0, 555.0, 0.0, 555.0, 555.0, white1,
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        555.0,
+        Dielectricstatic::new(1.5),
     )));
+
     objects.add(Arc::new(XyRectstatic::new(
         0.0, 555.0, 0.0, 555.0, 555.0, white2,
     )));
@@ -868,6 +988,134 @@ pub fn dinosaur_static() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
 
     objects.add(Arc::new(get_obj("input/dinosaur.2k.obj", 1.0)));
+
+    objects
+}
+
+//做一个冰山
+pub fn my_scene_static() -> HittableListstatic {
+    let mut objects: HittableListstatic = HittableListstatic::new_zero();
+    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
+    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+    //let sky_textrue = Lambertianstatic::new1(ImageTexturestatic::new("input/sky.png"));
+    let sky_textrue = DiffuseLightstatic::new(ImageTexturestatic::new("input/black_sky.png"));
+    let mid = XyRectstatic::new(-1000.0, 1750.0, -500.0, 1000.0, 1150.0, sky_textrue);
+    objects.add(Arc::new(mid));
+
+    let allin = Translatestatic::new(
+        get_obj2("input/deer.obj", 0.2),
+        Vec3::new(260.0, 100.0, 290.0),
+    );
+    let allin = RotateYstatic::new(allin, 90.0);
+    //Iostropicstatic
+    objects.add(Arc::new(allin));
+
+    let allin = Translatestatic::new(
+        get_obj_grass("input/gull.obj", 1500.2, Vec3::new(2.26, 0.75, 0.84)),
+        Vec3::new(0.0, 470.0, 0.0),
+    );
+    objects.add(Arc::new(allin));
+
+    let allin = Translatestatic::new(
+        get_obj_grass("input/spider.obj", 3.2, Vec3::new(0.83, 0.45, 0.27)),
+        Vec3::new(0.0, 0.0, 500.0),
+    );
+    objects.add(Arc::new(allin));
+
+    let allin = Translatestatic::new(
+        get_obj_grass("input/High Grass.obj", 1000.2, Vec3::new(0.13, 0.18, 0.16)),
+        Vec3::new(0.0, 0.0, 0.0),
+    );
+    objects.add(Arc::new(allin));
+
+    let allin = Translatestatic::new(
+        get_obj_grass("input/High Grass.obj", 2500.2, Vec3::new(0.83, 0.45, 0.26)),
+        Vec3::new(780.0, 0.0, 70.0),
+    );
+
+    objects.add(Arc::new(allin));
+
+    let allin = Translatestatic::new(
+        get_obj_grass("input/High Grass.obj", 2000.2, Vec3::new(0.83, 0.45, 0.26)),
+        Vec3::new(500.0, 0.0, 50.0),
+    );
+
+    objects.add(Arc::new(allin));
+
+    let mid = (XzRectstatic::new(0.0, 555.0, 0.0, 1555.0, -10.0, Dielectricstatic::new(1.5)));
+    //let mid = RotateYstatic::new(mid,180.0);
+    let mid = FlipFacestatic::new(mid);
+
+    objects.add(Arc::new(mid));
+
+    let mut boxes1 = HittableListstatic::new_zero();
+    let boxes_per_side = 25;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 90.0;
+            let x0 = random_double_a_b(800.0, 850.0);
+            let z0 = -1000.0 + (j as f64) * w;
+            let y0 = -1000.0 + (i as f64) * w;
+            let x1 = 850.0;
+            let y1 = y0 + w;
+            let z1 = z0 + w;
+
+            boxes1.add(Arc::new(Hezistatic::new(
+                Vec3::new(x0, y0, z0),
+                Vec3::new(x1, y1, z1),
+                Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.08, 0.45, 0.15)),
+            )));
+        }
+    }
+
+    objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+
+    let mut boxes1 = HittableListstatic::new_zero();
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -500.0;
+            let z0 = -1000.0 + (j as f64) * w;
+            let y0 = -1000.0 + (i as f64) * w;
+            let x1 = random_double_a_b(-500.0, -450.0);
+            let y1 = y0 + w;
+            let z1 = z0 + w;
+
+            boxes1.add(Arc::new(Hezistatic::new(
+                Vec3::new(x0, y0, z0),
+                Vec3::new(x1, y1, z1),
+                Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.08, 0.45, 0.15)),
+            )));
+        }
+    }
+
+    objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
+
+    let mut boxes1 = HittableListstatic::new_zero();
+    let boxes_per_side = 20;
+    for i in 0..boxes_per_side {
+        for j in 0..boxes_per_side {
+            let w = 100.0;
+            let x0 = -1000.0 + (i as f64) * w;
+            let z0 = -1000.0 + (j as f64) * w;
+            let y0 = 0.0;
+            let x1 = x0 + w;
+            let y1 = random_double_a_b(1.0, 101.0);
+            let z1 = z0 + w;
+
+            boxes1.add(Arc::new(Hezistatic::new(
+                Vec3::new(x0, y0, z0),
+                Vec3::new(x1, y1, z1),
+                Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.08, 0.45, 0.15)),
+            )));
+        }
+    }
+
+    objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
 
     objects
 }

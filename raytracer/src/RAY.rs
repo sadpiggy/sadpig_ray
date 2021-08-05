@@ -14,6 +14,8 @@ use std::cmp::min;
 use std::f32::consts::PI;
 use std::f64::INFINITY;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::option::Option::Some;
+use std::panic::resume_unwind;
 use std::sync::Arc;
 
 //pub use crate::vec3::Ray;
@@ -283,7 +285,7 @@ impl Hittable for Sphere {
         }
         let cos_max = (1.0
             - self.radius * self.radius / (self.center.sub(o.clone()).squared_length()))
-            .sqrt();
+        .sqrt();
         let solid_angle = (PI as f64) * 2.0 * (1.0 - cos_max);
         1.0 / solid_angle
     }
@@ -323,8 +325,8 @@ impl Ray {
                 if srec.is_specular {
                     return srec.attenuation
                         * srec
-                        .specular_ray
-                        .ray_color(background, world, lights, depth - 1);
+                            .specular_ray
+                            .ray_color(background, world, lights, depth - 1);
                 }
                 let light_ptr = Arc::new(HittablePdf::new(lights.clone(), &rec.p));
                 let mixed_pdf = MixturePdf::new(light_ptr.clone(), srec.pdf_ptr.clone());
@@ -378,8 +380,8 @@ impl Ray {
                 if srec.is_specular {
                     return srec.attenuation
                         * srec
-                        .specular_ray
-                        .ray_color_static(background, world, lights, depth - 1);
+                            .specular_ray
+                            .ray_color_static(background, world, lights, depth - 1);
                 }
                 let light_ptr = (HittablePdfstatic::new(lights, &rec.p));
                 let mixed_pdf = MixturePdfstatic::new(&light_ptr, &srec.pdf_ptr);
@@ -686,7 +688,7 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
             Some(rec_) => {
                 let cos_max = (1.0
                     - self.radius * self.radius / (self.center.sub(o.clone()).squared_length()))
-                    .sqrt();
+                .sqrt();
                 let solid_angle = (PI as f64) * 2.0 * (1.0 - cos_max);
                 return 1.0 / solid_angle;
             }
@@ -911,34 +913,181 @@ impl<T: Hittablestatic> Hittablestatic for RotateYstatic<T> {
     }
 }
 
-// pub struct FlipFacestatic<T:Hittablestatic> {
-//     pub ptr:T,
-// }
-//
-// impl <T:Hittablestatic>FlipFacestatic<T> {
-//     pub fn new(p: T) -> FlipFacestatic<T> {
-//         FlipFacestatic { ptr: p.clone() }
-//     }
-// }
-//
-// impl <T:Hittablestatic>Hittablestatic for FlipFacestatic<T> {
-//     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
-//         if !self.ptr.hit(r, t_min, t_max, rec) {
-//             return None;
-//         }
-//         rec.front_face = !rec.front_face;
-//         true
-//     }
-//
-//     fn bounding_box(&self, time0: f64, time1: f64, output_box: &mut Aabb) -> bool {
-//         self.ptr.bounding_box(time0, time1, output_box)
-//     }
-//
-//     fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
-//         0.0
-//     }
-//
-//     fn random(&self, o: &Vec3) -> Vec3 {
-//         Vec3::new(1.0, 0.0, 0.0)
-//     }
-// }
+pub struct RotateXstatic<T: Hittablestatic> {
+    pub ptr: T,
+    pub sin_theta: f64,
+    pub cos_theta: f64,
+    pub has_hezi: bool,
+    pub bbox: Aabb,
+}
+
+impl<T: Hittablestatic> RotateXstatic<T> {
+    pub fn new(p: T, angle: f64) -> RotateYstatic<T> {
+        let radians = degrees_to_radians(angle);
+        let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
+        let ptr: T = p;
+        let mut bbox: Option<Aabb> = ptr.bounding_box(0.0, 1.0);
+        let mut has_hezi = true;
+        if bbox.is_none() {
+            has_hezi = false;
+        }
+
+        let bbbox = match bbox {
+            Some(bbox) => {
+                let mut min_ = Vec3::new(INFINITY, INFINITY, INFINITY);
+                let mut max_ = Vec3::new(-INFINITY, -INFINITY, -INFINITY);
+                for i in 0..2 {
+                    for j in 0..2 {
+                        for k in 0..2 {
+                            let x = i as f64 * bbox.maximum.x + (1.0 - i as f64) * bbox.minimum.x;
+                            let y = j as f64 * bbox.maximum.y + (1.0 - j as f64) * bbox.minimum.y;
+                            let z = k as f64 * bbox.maximum.z + (1.0 - k as f64) * bbox.minimum.z;
+                            let newy = cos_theta * y + sin_theta * z;
+                            let newz = -sin_theta * y + cos_theta * z;
+                            let tester = Vec3::new(x, newy, newz);
+                            min_.x = f_min(min_.x, tester.x);
+                            max_.x = f_max(max_.x, tester.x);
+                            min_.y = f_min(min_.y, tester.y);
+                            max_.y = f_max(max_.y, tester.y);
+                            min_.z = f_min(min_.z, tester.z);
+                            max_.z = f_max(max_.z, tester.z);
+                        }
+                    }
+                }
+                Aabb {
+                    minimum: min_,
+                    maximum: max_,
+                }
+            }
+            None => Aabb {
+                minimum: Vec3::zero(),
+                maximum: Vec3::zero(),
+            },
+        };
+
+        RotateYstatic {
+            ptr,
+            sin_theta,
+            cos_theta,
+            has_hezi,
+            bbox: bbbox,
+        }
+    }
+}
+
+impl<T: Hittablestatic> Hittablestatic for RotateXstatic<T> {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
+        let mut orig = r.orig.clone();
+        let mut dire = r.dire.clone();
+        orig.y = self.cos_theta * r.orig.y - self.sin_theta * r.orig.z;
+        orig.z = self.sin_theta * r.orig.y + self.cos_theta * r.orig.z;
+        dire.y = self.cos_theta * r.dire.y - self.sin_theta * r.dire.z;
+        dire.z = self.sin_theta * r.dire.y + self.cos_theta * r.dire.z;
+
+        let rotated_r = Ray::new2(&orig, &dire, r.time);
+
+        match self.ptr.hit(&rotated_r, t_min, t_max) {
+            Some(rec) => {
+                let mut p = rec.p.clone();
+                let mut normal_ = rec.normal.clone();
+                p.y = self.cos_theta * rec.p.y + self.sin_theta * rec.p.z;
+                p.z = -self.sin_theta * rec.p.y + self.cos_theta * rec.p.z;
+                normal_.y = self.cos_theta * rec.normal.y + self.sin_theta * rec.normal.z;
+                normal_.z = -self.sin_theta * rec.normal.y + self.cos_theta * rec.normal.z;
+                let front_face = (rotated_r.dire.dot(&normal_.clone()) < 0.0);
+                let mut flag = -1.0;
+                if front_face {
+                    flag = 1.0;
+                }
+                //rec.p = p;
+                Some(HitRecordstatic {
+                    p,
+                    normal: normal_.mul(flag),
+                    front_face,
+                    ..rec
+                })
+            }
+            None => None,
+        }
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<Aabb> {
+        if self.has_hezi {
+            Some(Aabb {
+                minimum: self.bbox.minimum.clone(),
+                maximum: self.bbox.maximum.clone(),
+            })
+        } else {
+            None
+        }
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        let rotated_o = Vec3::new(
+            o.x,
+            self.cos_theta * o.y - self.sin_theta * o.z,
+            self.sin_theta * o.y + self.cos_theta * o.z,
+        );
+        let rotated_v = Vec3::new(
+            v.x,
+            self.cos_theta * v.y - self.sin_theta * v.z,
+            self.sin_theta * v.y + self.cos_theta * v.z,
+        );
+        self.ptr.pdf_value(&rotated_o, &rotated_v)
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let rotated_o = Vec3::new(
+            o.x,
+            self.cos_theta * o.y - self.sin_theta * o.z,
+            self.sin_theta * o.y + self.cos_theta * o.z,
+        );
+        let rec = self.ptr.random(&rotated_o);
+        Vec3::new(
+            rec.x,
+            self.cos_theta * rec.y + self.sin_theta * rec.z,
+            -self.sin_theta * rec.y + self.cos_theta * rec.z,
+        )
+    }
+}
+
+pub struct FlipFacestatic<T: Hittablestatic> {
+    pub ptr: T,
+}
+
+impl<T: Hittablestatic> FlipFacestatic<T> {
+    pub fn new(p: T) -> FlipFacestatic<T> {
+        FlipFacestatic { ptr: p }
+    }
+}
+
+impl<T: Hittablestatic> Hittablestatic for FlipFacestatic<T> {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
+        if let Some(pig) = self.ptr.hit(r, t_min, t_max) {
+            return Some(HitRecordstatic {
+                normal: pig.normal.mul(-1.0),
+                t: pig.t,
+                front_face: !pig.front_face,
+                mat_ptr: pig.mat_ptr,
+                u: pig.u,
+                v: pig.v,
+                ..pig
+            });
+        } else {
+            return None;
+        }
+    }
+
+    fn bounding_box(&self, time0: f64, time1: f64) -> Option<Aabb> {
+        self.ptr.bounding_box(time0, time1)
+    }
+
+    fn pdf_value(&self, o: &Vec3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
+}

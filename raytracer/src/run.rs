@@ -3,8 +3,8 @@ use crate::hittable_list::{HittableList, HittableListstatic};
 use crate::matirial::{Dielectric, Lambertian, Lambertianstatic, Material, Metal};
 use crate::rtweekend::{
     clamp, cornell_box, cornell_box_static, cornell_smoke, cornell_table_static, dinosaur_static,
-    earth, final_scene, final_scene_static, get_obj, get_obj_test, random_secne, simple_light,
-    two_perlin_spheres, two_spheres, two_spheres_static,
+    earth, final_scene, final_scene_static, get_obj, get_obj_test, my_scene_static, random_secne,
+    simple_light, two_perlin_spheres, two_spheres, two_spheres_static,
 };
 use crate::RAY::{Hittable, Hittablestatic, Sphere, Spherestatic};
 use core::fmt::Alignment::Center;
@@ -223,8 +223,8 @@ pub fn Runstatic() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 5;
-    let max_depth = 10;
+    let mut samples_per_pixels: u32 = 100;
+    let max_depth = 50;
     //world
     let R = (PI / 4.0).cos();
 
@@ -236,7 +236,7 @@ pub fn Runstatic() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::new(0.93, 0.93, 0.93);
 
-    let mut case = 4;
+    let mut case = 6;
 
     if case == 0 {
         world = two_spheres_static();
@@ -300,6 +300,18 @@ pub fn Runstatic() {
         image_height = image_width;
     }
 
+    if case == 6 {
+        world = my_scene_static();
+        // world = cornell_box_static();
+        background = Vec3::new(0.48, 0.83, 100.53);
+        look_from_ = Vec3::new(278.0, 278.0, -800.0);
+        look_at_ = Vec3::new(278.0, 278.0, 0.0);
+        vfov_ = 40.0;
+        aspect_ratio_ = 2.0;
+        image_width = 1200;
+        image_height = 600;
+    }
+
     //camera
     let cam = Camera::new(
         &look_from_,
@@ -344,7 +356,7 @@ pub fn Runstatic() {
             //     mat_ptr: (Lambertianstatic::<SolidColorstatic>::new_zero()),
             // }));
             motherfuck.add(Arc::new(Spherestatic {
-                center: Vec3::new(190.0, 90.0, 190.0),
+                center: Vec3::new(278.0, 278.0, 0.0),
                 radius: 90.0,
                 mat_ptr: (Lambertianstatic::<SolidColorstatic>::new_zero()),
             }));
