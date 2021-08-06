@@ -298,7 +298,7 @@ pub fn cornell_box() -> HittableList {
         white.clone(),
     )));
 
-    let alumimum = Arc::new(Metal::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
+    //let alumimum = Arc::new(Metal::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
 
     let mut box1: Arc<dyn Hittable> = Arc::new(Hezi::new(
         Vec3::zero(),
@@ -394,11 +394,11 @@ pub fn cornell_smoke() -> HittableList {
 }
 
 pub fn final_scene() -> HittableList {
-    let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
+    //let white = Arc::new(Lambertian::new(&Vec3::new(0.73, 0.73, 0.73)));
     let mut boxes1 = HittableList::new_zero();
     let mut objects = HittableList::new_zero();
     let ground = Arc::new(Lambertian::new(&Vec3::new(0.48, 0.83, 0.53)));
-    let green = Arc::new(Lambertian::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    //let green = Arc::new(Lambertian::new(&(Vec3::new(0.12, 0.45, 0.15))));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
@@ -471,9 +471,9 @@ pub fn final_scene() -> HittableList {
         Vec3::new(1.0, 1.0, 1.0),
     )));
 
-    let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
-        "input/me.png",
-    ))));
+    // let emat = Arc::new(Lambertian::new1(Arc::new(ImageTexture::new(
+    //     "input/me.png",
+    // ))));
     let pertext = Arc::new(NoiseTexture::new(0.1));
     // objects.add(Arc::new(Sphere {
     //     center: Vec3::new(400.0, 200.0, 400.0),
@@ -571,15 +571,15 @@ pub fn cornell_box_static() -> HittableListstatic {
         0.0, 555.0, 0.0, 555.0, 555.0, white2,
     )));
 
-    let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
+    //let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
 
-    let mut box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
-    let box1 = (RotateYstatic::new(box1, 15.0));
+    let mut box1 = Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3);
+    let box1 = RotateYstatic::new(box1, 15.0);
     let box1: Arc<dyn Hittablestatic> =
         Arc::new(Translatestatic::new(box1, Vec3::new(265.0, 0.0, 295.0)));
     objects.add(box1);
 
-    let glass = (Dielectricstatic::new(1.5));
+    let glass = Dielectricstatic::new(1.5);
     objects.add(Arc::new(Spherestatic {
         center: Vec3::new(190.0, 90.0, 190.0),
         radius: 90.0,
@@ -590,11 +590,11 @@ pub fn cornell_box_static() -> HittableListstatic {
 }
 
 pub fn final_scene_static() -> HittableListstatic {
-    let white = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73)));
+    //let white = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73)));
     let mut boxes1 = HittableListstatic::new_zero();
     let mut objects = HittableListstatic::new_zero();
-    let ground = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.48, 0.83, 0.53)));
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    let ground = Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.48, 0.83, 0.53));
+    // let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
     let boxes_per_side = 20;
     for i in 0..boxes_per_side {
         for j in 0..boxes_per_side {
@@ -616,7 +616,7 @@ pub fn final_scene_static() -> HittableListstatic {
 
     objects.add(Arc::new(BvhNodestatic::new_dog(&boxes1, 0.0, 1.0)));
 
-    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(7.0, 7.0, 7.0)));
+    let light = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(7.0, 7.0, 7.0));
     objects.add(Arc::new(XzRectstatic::new(
         123.0, 423.0, 147.0, 412.0, 554.0, light,
     )));
@@ -625,7 +625,7 @@ pub fn final_scene_static() -> HittableListstatic {
     let center1 = Vec3::new(400.0, 400.0, 200.0);
     let center2 = center1.add(Vec3::new(30.0, 0.0, 0.0));
     let moving_sphere_material =
-        (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.7, 0.3, 0.1)));
+        Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.7, 0.3, 0.1));
     objects.add(Arc::new(MovingSpherestatic::new(
         center1,
         center2,
@@ -652,31 +652,31 @@ pub fn final_scene_static() -> HittableListstatic {
         mat_ptr: (Dielectricstatic::new(1.5)),
     });
     objects.add(boundary.clone());
-    let boundary = (Spherestatic {
+    let boundary = Spherestatic {
         center: Vec3::new(360.0, 150.0, 145.0),
         radius: 70.0,
         mat_ptr: (Dielectricstatic::new(1.5)),
-    });
+    };
     objects.add(Arc::new(ConstantMediumstatic::new2(
         boundary,
         0.2,
         Vec3::new(0.2, 0.4, 0.9),
     )));
-    let boundary = (Spherestatic {
+    let boundary = Spherestatic {
         center: Vec3::new(0.0, 0.0, 0.0),
         radius: 5000.0,
         mat_ptr: (Dielectricstatic::new(1.5)),
-    });
+    };
     objects.add(Arc::new(ConstantMediumstatic::new2(
         boundary,
         0.0001,
         Vec3::new(1.0, 1.0, 1.0),
     )));
 
-    let emat = Arc::new(Lambertianstatic::new1(
-        (ImageTexturestatic::new("input/me.png")),
-    ));
-    let pertext = (NoiseTexturestatic::new(0.1));
+    // let emat = Arc::new(Lambertianstatic::new1(
+    //     (ImageTexturestatic::new("input/me.png")),
+    // ));
+    let pertext = NoiseTexturestatic::new(0.1);
     // objects.add(Arc::new(Sphere {
     //     center: Vec3::new(400.0, 200.0, 400.0),
     //     radius: 100.0,
@@ -695,7 +695,7 @@ pub fn final_scene_static() -> HittableListstatic {
     }));
 
     let mut boxes2 = HittableListstatic::new_zero();
-    let white = (Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73)));
+    let white = Lambertianstatic::<SolidColorstatic>::new(&Vec3::new(0.73, 0.73, 0.73));
     let ns = 1000;
     for j in 0..ns {
         boxes2.add(Arc::new(Spherestatic {
@@ -705,10 +705,10 @@ pub fn final_scene_static() -> HittableListstatic {
         }))
     }
 
-    let rinima = (BvhNodestatic::new_dog(&boxes2, 0.0, 1.0));
+    let rinima = BvhNodestatic::new_dog(&boxes2, 0.0, 1.0);
 
     objects.add(Arc::new(Translatestatic::new(
-        (RotateYstatic::new(rinima, 15.0)),
+        RotateYstatic::new(rinima, 15.0),
         Vec3::new(-100.0, 270.0, 395.0),
     )));
 
@@ -717,12 +717,12 @@ pub fn final_scene_static() -> HittableListstatic {
 
 pub fn get_obj_test() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
-    let metal = (Metalstatic::new(&Vec3::new(0.3, 0.8, 0.9), 1.0));
-    let checker = (CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
+    let green = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15)));
+    //let metal = (Metalstatic::new(&Vec3::new(0.3, 0.8, 0.9), 1.0));
+    let checker = CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
         Vec3::new(0.2, 0.3, 0.1),
         Vec3::new(0.9, 0.9, 0.9),
-    ));
+    );
 
     //let pertext = Arc::new(NoiseTexture::new());
 
@@ -765,7 +765,7 @@ pub fn get_obj(filename: &str, rate: f64) -> HittableListstatic {
     assert!(cornell_box.is_ok());
     // let rate = 10.0 * 10.0 * 1.9;
     let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
-    let mut boxes1 = HittableListstatic::new_zero();
+    //let mut boxes1 = HittableListstatic::new_zero();
     for (_i, m) in models.iter().enumerate() {
         let mut boxes2 = HittableListstatic::new_zero();
         let mesh = &m.mesh;
@@ -808,7 +808,7 @@ pub fn get_obj2(filename: &str, rate: f64) -> HittableListstatic {
     //let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
     //let green = (Iostropicstatic::<SolidColorstatic>::new((Vec3::new(0.12, 0.45, 0.15))));
     //let green = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(0.17, 2.06, 1.3));
-    let green = (Metalstatic::new(&Vec3::new(0.12, 0.45, 0.15), 0.1));
+    let green = Metalstatic::new(&Vec3::new(0.12, 0.45, 0.15), 0.1);
     let cornell_box = tobj::load_obj(
         //buddle
         filename,
@@ -821,7 +821,7 @@ pub fn get_obj2(filename: &str, rate: f64) -> HittableListstatic {
     assert!(cornell_box.is_ok());
     // let rate = 10.0 * 10.0 * 1.9;
     let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
-    let mut boxes1 = HittableListstatic::new_zero();
+    //let mut boxes1 = HittableListstatic::new_zero();
     for (_i, m) in models.iter().enumerate() {
         let mut boxes2 = HittableListstatic::new_zero();
         let mesh = &m.mesh;
@@ -863,7 +863,7 @@ pub fn get_obj_grass(filename: &str, rate: f64, color: Vec3) -> HittableListstat
     //let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
     //let green = (Iostropicstatic::<SolidColorstatic>::new((Vec3::new(0.12, 0.45, 0.15))));
     //let green = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(0.17, 2.06, 1.3));Vec3::new(0.83, 0.45, 0.27)
-    let green = (Metalstatic::new(&color, 0.1));
+    let green = Metalstatic::new(&color, 0.1);
     let cornell_box = tobj::load_obj(
         //buddle
         filename,
@@ -876,7 +876,7 @@ pub fn get_obj_grass(filename: &str, rate: f64, color: Vec3) -> HittableListstat
     assert!(cornell_box.is_ok());
     // let rate = 10.0 * 10.0 * 1.9;
     let (models, _materials) = cornell_box.expect("Failed to load OBJ file");
-    let mut boxes1 = HittableListstatic::new_zero();
+    //let mut boxes1 = HittableListstatic::new_zero();
     for (_i, m) in models.iter().enumerate() {
         let mut boxes2 = HittableListstatic::new_zero();
         let mesh = &m.mesh;
@@ -915,13 +915,13 @@ pub fn get_obj_grass(filename: &str, rate: f64, color: Vec3) -> HittableListstat
 
 pub fn cornell_table_static() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
-    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
-    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white2 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white3 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
-    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+    let red = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05)));
+    let white = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    // let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    let white2 = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let white3 = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let green = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15)));
+    let light = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0));
 
     // let allin = Translatestatic::new(
     //     get_obj("input/Tree low.obj",3.0),
@@ -966,10 +966,10 @@ pub fn cornell_table_static() -> HittableListstatic {
         0.0, 555.0, 0.0, 555.0, 555.0, white2,
     )));
 
-    let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
+    //let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
 
-    let box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
-    let box1 = (RotateYstatic::new(box1, 15.0));
+    let box1 = Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3);
+    let box1 = RotateYstatic::new(box1, 15.0);
     let box1: Arc<dyn Hittablestatic> =
         Arc::new(Translatestatic::new(box1, Vec3::new(265.0, 0.0, 295.0)));
     objects.add(box1);
@@ -995,11 +995,11 @@ pub fn dinosaur_static() -> HittableListstatic {
 //做一个冰山
 pub fn my_scene_static() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
-    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
-    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
-    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+    // let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
+    // let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    // let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
+    // let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
+    // let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
     //let sky_textrue = Lambertianstatic::new1(ImageTexturestatic::new("input/sky.png"));
     let sky_textrue = DiffuseLightstatic::new(ImageTexturestatic::new("input/black_sky.png"));
     let mid = XyRectstatic::new(-1000.0, 1750.0, -500.0, 1000.0, 1150.0, sky_textrue);
@@ -1045,7 +1045,7 @@ pub fn my_scene_static() -> HittableListstatic {
 
     objects.add(Arc::new(allin));
 
-    let mid = (XzRectstatic::new(0.0, 555.0, 0.0, 1555.0, -10.0, Dielectricstatic::new(1.5)));
+    let mid = XzRectstatic::new(0.0, 555.0, 0.0, 1555.0, -10.0, Dielectricstatic::new(1.5));
     //let mid = RotateYstatic::new(mid,180.0);
     let mid = FlipFacestatic::new(mid);
 
