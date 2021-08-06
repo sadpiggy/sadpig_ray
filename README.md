@@ -128,29 +128,29 @@ ACM伪摄影公司，简称PPCA，于2021年成立😉
   * [serde](https://serde.rs)
 
 ##完成情况
-*必做部分：
+必做部分：
 
-*- [ y] book 1
-*- [ y] 3 BVH
-*- [y ] 7 Rectangles and Lights
+- [ y] book 1
+- [ y] 3 BVH
+- [y ] 7 Rectangles and Lights
 
 选做部分：
 
-*- [ y] 2 Motion Blur
-*- [y ] 4 Solid Textures
-*- [ y] 5 Perlin Noise
-*- [y ] 6 Image Texture Mapping
-*- [y ] 8 Instances
-*- [y ] 9 Volumes
-*- [ y] 10 book 2 final scene
+- [ y] 2 Motion Blur
+- [y ] 4 Solid Textures
+- [ y] 5 Perlin Noise
+- [y ] 6 Image Texture Mapping
+- [y ] 8 Instances
+- [y ] 9 Volumes
+- [ y] 10 book 2 final scene
 
 Bonus tracks：
 
-*- [ y] Track 1
-*- [ y] Track 2
-*- [ ] Track 3
-*- [ y] Track 4
-*- [ ] Track 5
-*- [y ] Track 6：没有benchmark
-*- [y ] Track 7
-*  - [ ] 手写obj_loader
+- [ y] Track 1
+- [ y] Track 2
+- [ ] Track 3
+- [ y] Track 4
+- [ ] Track 5
+- [y ] Track 6：没有benchmark
+- [y ] Track 7
+  - [ ] 手写obj_loader
