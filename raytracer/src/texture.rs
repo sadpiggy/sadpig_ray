@@ -247,16 +247,16 @@ impl Texture for ImageTexture {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
         let u_mid = clamp(u, 0.0, 1.0);
         let v_mid = 1.0 - clamp(v, 0.0, 1.0);
-        let mut i = (u_mid * (self.width as f64)) as u32;
-        if i >= self.width {
-            i = (self.width) - 1;
+        let mut i_kun = (u_mid * (self.width as f64)) as u32;
+        if i_kun >= self.width {
+            i_kun = (self.width) - 1;
         }
-        let mut j = (v_mid * (self.height as f64)) as u32;
-        if j >= self.height {
-            j = (self.height) - 1;
+        let mut j_kun = (v_mid * (self.height as f64)) as u32;
+        if j_kun >= self.height {
+            j_kun = (self.height) - 1;
         }
 
-        let pixel_ = image::GenericImageView::get_pixel(&(self.data), i, j);
+        let pixel_ = image::GenericImageView::get_pixel(&(self.data), i_kun, j_kun);
         //println!("{}", pixel_[0]);
         Vec3::new(
             pixel_[0] as f64 / 255.0,

@@ -71,26 +71,26 @@ impl Perlin {
     // self.ranfloat
     // [(self.perm_x[i as usize] ^ self.perm_y[j as usize] ^ self.perm_z[k as usize]) as usize]
     pub fn noise(&self, p: &Vec3) -> f64 {
-        let mut u = p.x - p.x.floor();
-        let mut v = p.y - p.y.floor();
-        let mut w = p.z - p.z.floor();
+        let mut u_kun = p.x - p.x.floor();
+        let mut v_kun = p.y - p.y.floor();
+        let mut w_kun = p.z - p.z.floor();
 
-        let i = (p.x.floor()) as i32 as usize;
-        let j = (p.y).floor() as i32 as usize;
-        let k = (p.z).floor() as i32 as usize;
+        let i_kun = (p.x.floor()) as i32 as usize;
+        let j_kun = (p.y).floor() as i32 as usize;
+        let k_kun = (p.z).floor() as i32 as usize;
         let mut c: [[[Vec3; 2]; 2]; 2] = [[[Vec3::zero(); 2]; 2]; 2];
 
         for di in 0 as usize..2 as usize {
             for dj in 0 as usize..2 as usize {
                 for dk in 0 as usize..2 as usize {
-                    c[di][dj][dk] = self.ranvec[(self.perm_x[(i + di) & 255 as usize]
-                        ^ self.perm_y[(j + dj) & 255 as usize]
-                        ^ self.perm_z[(k + dk) & 255 as usize])
+                    c[di][dj][dk] = self.ranvec[(self.perm_x[(i_kun + di) & 255 as usize]
+                        ^ self.perm_y[(j_kun + dj) & 255 as usize]
+                        ^ self.perm_z[(k_kun + dk) & 255 as usize])
                         as usize];
                 }
             }
         }
-        Perlin::trilinear_interp(c, u, v, w)
+        Perlin::trilinear_interp(c, u_kun, v_kun, w_kun)
     }
 
     pub fn trilinear_interp(c: [[[Vec3; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {

@@ -200,7 +200,7 @@ impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
         let a_kun: f64 = r.dire.squared_length();
         let half_b: f64 = r.dire.dot(&oc);
         let c_kun: f64 = oc.squared_length() - self.radius * self.radius;
-        let pan: f64 = half_b * half_b - a_kun * c_kun;
+        let pan: f64 = half_b.powf(2.0) - a_kun * c_kun;
         if pan < 0.0 {
             return None;
         };

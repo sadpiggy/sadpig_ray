@@ -419,20 +419,20 @@ impl<T: Materialstatic> YzRectstatic<T> {
 
 impl<T: Materialstatic> Hittablestatic for YzRectstatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
-        let t = (self.k - r.orig.x) / (r.dire.x);
-        if t < t_min || t > t_max {
+        let t_kun = (self.k - r.orig.x) / (r.dire.x);
+        if t_kun < t_min || t_kun > t_max {
             return None;
         }
-        let y = r.orig.y + t * r.dire.y;
-        let z = r.orig.z + t * r.dire.z;
-        if y < self.y0 || y > self.y1 || z < self.z0 || z > self.z1 {
+        let y_kun = r.orig.y + t_kun * r.dire.y;
+        let z_kun = r.orig.z + t_kun * r.dire.z;
+        if y_kun < self.y0 || y_kun > self.y1 || z_kun < self.z0 || z_kun > self.z1 {
             return None;
         }
-        let u = (y - self.y0) / (self.y1 - self.y0);
-        let v = (z - self.z0) / (self.z1 - self.z0);
+        let u_kun = (y_kun - self.y0) / (self.y1 - self.y0);
+        let v_kun = (z_kun - self.z0) / (self.z1 - self.z0);
         //rec.t = t;
         let outward_normal = Vec3::new(1.0, 0.0, 0.0);
-        let p = r.at(t);
+        let p = r.at(t_kun);
         //rec.set_face_normal(r, &outward_normal);
         let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
@@ -443,11 +443,11 @@ impl<T: Materialstatic> Hittablestatic for YzRectstatic<T> {
         Some(HitRecordstatic {
             p,
             normal: outward_normal.mul(flag),
-            t,
+            t:t_kun,
             front_face,
             mat_ptr,
-            u,
-            v,
+            u:u_kun,
+            v:v_kun,
         })
     }
 
