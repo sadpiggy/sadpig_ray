@@ -1,12 +1,9 @@
 use crate::aabb::Aabb;
 use crate::aarect_h::{XyRect, XyRectstatic, XzRect, XzRectstatic, YzRect, YzRectstatic};
-use crate::hittable_list::HittableListstatic;
 use crate::matirial::Materialstatic;
-use crate::rtweekend;
 use crate::HittableList;
 use crate::Vec3;
 use crate::RAY::{HitRecord, HitRecordstatic, Hittable, Hittablestatic, Material, Ray};
-use std::fs::read;
 use std::sync::Arc;
 
 pub struct Hezi {

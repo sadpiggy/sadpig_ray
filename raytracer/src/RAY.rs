@@ -1,21 +1,17 @@
 use crate::aabb::Aabb;
-use crate::aarect_h::YzRect;
-use crate::camera::random_double_a_b;
-use crate::hittable_list::{HittableList, HittableListstatic};
+use crate::hittable_list::HittableListstatic;
 pub use crate::matirial::Material;
-use crate::matirial::{
-    Lambertian, Lambertianstatic, Materialstatic, ScatterRecord, ScatterRecordstatic,
-};
+use crate::matirial::{Lambertian, Materialstatic, ScatterRecord};
 use crate::onb::Onb;
-use crate::pdf::{CosinePdf, HittablePdf, HittablePdfstatic, MixturePdf, MixturePdfstatic, PDF};
+use crate::pdf::{HittablePdf, HittablePdfstatic, MixturePdf, MixturePdfstatic, PDF};
 use crate::rtweekend::{degrees_to_radians, f_max, f_min};
 pub use crate::vec3::Vec3;
-use std::cmp::min;
+
 use std::f32::consts::PI;
 use std::f64::INFINITY;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, Div, Mul, Sub};
 use std::option::Option::Some;
-use std::panic::resume_unwind;
+
 use std::sync::Arc;
 
 //pub use crate::vec3::Ray;
@@ -74,7 +70,7 @@ impl HitRecord {
 
     //这里·可能·有bug
     pub fn set_face_normal(&mut self, r: &Ray, outward_normal: &Vec3) {
-        self.front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+        self.front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         if self.front_face {
             //println!("niamisisi");
             // self.clone();
@@ -340,7 +336,7 @@ impl Ray {
 
                 return emitted.add(
                     srec.attenuation
-                        .mul((rec.mat_ptr.scattering_pdf(&self, &rec, &mut scattered)))
+                        .mul(rec.mat_ptr.scattering_pdf(&self, &rec, &mut scattered))
                         .mul(scattered.ray_color(&background, world, lights, depth - 1))
                         / (pdf_val),
                 );
@@ -383,7 +379,8 @@ impl Ray {
                             .specular_ray
                             .ray_color_static(background, world, lights, depth - 1);
                 }
-                let light_ptr = (HittablePdfstatic::new(lights, &rec.p));
+
+                let light_ptr = HittablePdfstatic::new(lights, &rec.p);
                 let mixed_pdf = MixturePdfstatic::new(&light_ptr, &srec.pdf_ptr);
 
                 let pig = Ray::new2(&rec.p, &mixed_pdf.generate(), self.time);
@@ -395,7 +392,7 @@ impl Ray {
 
                 return emitted.add(
                     srec.attenuation
-                        .mul((rec.mat_ptr.scattering_pdf(&self, &rec, &mut scattered)))
+                        .mul(rec.mat_ptr.scattering_pdf(&self, &rec, &mut scattered))
                         .mul(scattered.ray_color_static(&background, world, lights, depth - 1))
                         / (pdf_val),
                 );
@@ -630,7 +627,7 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
             let mut u = 0.0;
             let mut v = 0.0;
             get_sphere_uv(&outward_normal_, &mut u, &mut v);
-            let front_face = (r.dire.dot(&outward_normal_.clone()) < 0.0);
+            let front_face = r.dire.dot(&outward_normal_.clone()) < 0.0;
             let mut flag = 1.0;
             if !front_face {
                 flag = -1.0;
@@ -653,7 +650,7 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
             let mut u = 0.0;
             let mut v = 0.0;
             get_sphere_uv(&outward_normal_, &mut u, &mut v);
-            let front_face = (r.dire.dot(&outward_normal_.clone()) < 0.0);
+            let front_face = r.dire.dot(&outward_normal_.clone()) < 0.0;
             let mut flag = 1.0;
             if !front_face {
                 flag = -1.0;
@@ -728,7 +725,7 @@ impl<T: Hittablestatic> Hittablestatic for Translatestatic<T> {
         );
         match self.ptr.hit(&moved_r, t_min, t_max) {
             Some(rec) => {
-                let front_face = (r.dire.dot(&rec.normal.clone()) < 0.0);
+                let front_face = r.dire.dot(&rec.normal.clone()) < 0.0;
                 let mut flag = 1.0;
                 if !front_face {
                     flag = -1.0;
@@ -856,7 +853,7 @@ impl<T: Hittablestatic> Hittablestatic for RotateYstatic<T> {
                 p.z = -self.sin_theta * rec.p.x + self.cos_theta * rec.p.z;
                 normal_.x = self.cos_theta * rec.normal.x + self.sin_theta * rec.normal.z;
                 normal_.z = -self.sin_theta * rec.normal.x + self.cos_theta * rec.normal.z;
-                let front_face = (rotated_r.dire.dot(&normal_.clone()) < 0.0);
+                let front_face = rotated_r.dire.dot(&normal_.clone()) < 0.0;
                 let mut flag = -1.0;
                 if front_face {
                     flag = 1.0;
@@ -995,7 +992,7 @@ impl<T: Hittablestatic> Hittablestatic for RotateXstatic<T> {
                 p.z = -self.sin_theta * rec.p.y + self.cos_theta * rec.p.z;
                 normal_.y = self.cos_theta * rec.normal.y + self.sin_theta * rec.normal.z;
                 normal_.z = -self.sin_theta * rec.normal.y + self.cos_theta * rec.normal.z;
-                let front_face = (rotated_r.dire.dot(&normal_.clone()) < 0.0);
+                let front_face = rotated_r.dire.dot(&normal_.clone()) < 0.0;
                 let mut flag = -1.0;
                 if front_face {
                     flag = 1.0;

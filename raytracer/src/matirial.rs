@@ -1,20 +1,17 @@
 pub use crate::camera::{random_double_0_1, Camera};
 pub use crate::hittable_list::HittableList;
-use crate::onb;
-use crate::onb::Onb;
-use crate::pdf::{CosinePdf, CosinePdfstatic, HittablePdf, PDFstatic, PDF};
+
+use crate::pdf::{CosinePdf, CosinePdfstatic, HittablePdf, PDF};
 pub use crate::rtweekend::clamp;
 use crate::rtweekend::schlick;
 use crate::texture::{SolidColor, SolidColorstatic, Texture, Texturestatic};
 use crate::Vec3;
 pub use crate::RAY::Sphere;
 use crate::RAY::{HitRecord, HitRecordstatic, Ray};
-use std::alloc::handle_alloc_error;
-use std::collections::hash_map::Entry::Vacant;
+
 use std::f64::consts::PI;
-use std::ops::{Add, Mul};
+use std::ops::Mul;
 use std::sync::Arc;
-use std::thread::sleep;
 
 //unit_direction
 
@@ -461,7 +458,7 @@ impl Dielectricstatic {
 impl Materialstatic for Dielectricstatic {
     fn scatter(&self, r_in: &Ray, rec: &HitRecordstatic) -> Option<ScatterRecordstatic> {
         let is_specular_ = true;
-        let pdf_ptr_ = (CosinePdfstatic::new(&rec.normal));
+        let pdf_ptr_ = CosinePdfstatic::new(&rec.normal);
         let attenuation_ = Vec3::new(1.0, 1.0, 1.0);
 
         let etai: f64;

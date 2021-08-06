@@ -1,11 +1,9 @@
 use crate::aabb::Aabb;
 use crate::matirial::{Lambertian, Materialstatic};
 use crate::rtweekend::{f_3_max, f_3_min, get_triangle_uv, random_double_a_b};
-use crate::RAY;
-use crate::RAY::{
-    get_sphere_uv, HitRecord, HitRecordstatic, Hittable, Hittablestatic, Material, Ray,
-};
-use crate::{rtweekend, Vec3};
+
+use crate::Vec3;
+use crate::RAY::{HitRecord, HitRecordstatic, Hittable, Hittablestatic, Material, Ray};
 use std::f64::INFINITY;
 use std::ops::Mul;
 use std::sync::Arc;
@@ -268,7 +266,7 @@ impl<T: Materialstatic> Hittablestatic for XyRectstatic<T> {
         let outward_normal = Vec3::new(0.0, 0.0, 1.0);
         let p = r.at(t);
         //rec.set_face_normal(r, &outward_normal);
-        let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+        let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
         if front_face {
             flag = 1.0;
@@ -353,7 +351,7 @@ impl<T: Materialstatic> Hittablestatic for XzRectstatic<T> {
         let outward_normal = Vec3::new(0.0, 1.0, 0.0);
         let p = r.at(t);
         //rec.set_face_normal(r, &outward_normal);
-        let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+        let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
         if front_face {
             flag = 1.0;
@@ -436,7 +434,7 @@ impl<T: Materialstatic> Hittablestatic for YzRectstatic<T> {
         let outward_normal = Vec3::new(1.0, 0.0, 0.0);
         let p = r.at(t);
         //rec.set_face_normal(r, &outward_normal);
-        let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+        let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
         if front_face {
             flag = 1.0;
@@ -514,7 +512,7 @@ impl<T: Materialstatic> Hittablestatic for Trianglestatic<T> {
             && Vec3::sameside(self.p2, self.p0, self.p1, r_)
         {
             let outward_normal = n;
-            let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+            let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
             let mut flag = 1.0;
             if !front_face {
                 flag = -1.0;

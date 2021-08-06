@@ -233,7 +233,7 @@ pub struct ImageTexture {
 impl ImageTexture {
     //这里以后可以改进//==现在不想改进
     pub fn new(filename: &str) -> ImageTexture {
-        let mut pig = image::open(filename).unwrap();
+        let pig = image::open(filename).unwrap();
         let w = image::GenericImageView::width(&pig);
         let h = image::GenericImageView::height(&pig);
 
@@ -277,7 +277,7 @@ pub struct ImageTexturestatic {
 impl ImageTexturestatic {
     //这里以后可以改进//==现在不想改进
     pub fn new(filename: &str) -> ImageTexturestatic {
-        let mut pig = image::open(filename).unwrap();
+        let pig = image::open(filename).unwrap();
         let w = image::GenericImageView::width(&pig);
         let h = image::GenericImageView::height(&pig);
 

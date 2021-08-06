@@ -968,7 +968,7 @@ pub fn cornell_table_static() -> HittableListstatic {
 
     let alumimum = Arc::new(Metalstatic::new(&Vec3::new(0.8, 0.85, 0.88), 0.0));
 
-    let mut box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
+    let box1 = (Hezistatic::new(Vec3::zero(), Vec3::new(165.0, 330.0, 165.0), white3));
     let box1 = (RotateYstatic::new(box1, 15.0));
     let box1: Arc<dyn Hittablestatic> =
         Arc::new(Translatestatic::new(box1, Vec3::new(265.0, 0.0, 295.0)));

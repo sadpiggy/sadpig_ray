@@ -1,6 +1,6 @@
 use crate::aabb::Aabb;
 pub use crate::hittable_list::HittableList;
-use crate::matirial::{Dielectric, Lambertian, Material, Materialstatic, Metal};
+use crate::matirial::{Material, Materialstatic};
 use crate::rtweekend::{f_max, f_min};
 use crate::Vec3;
 pub use crate::RAY::Sphere;
@@ -212,7 +212,7 @@ impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
             let p = r.at(t);
             let outward_normal = (p.sub(self.center(r.time))).div(self.radius);
             //rec.set_face_normal(&r, &(outward_normal));
-            let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+            let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
             //let mat_ptr = self.mat_ptr.clone();
             let mut flag = 1.0;
             if !front_face {
@@ -237,7 +237,7 @@ impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
             let p = r.at(t);
             let outward_normal = (p.sub(self.center(r.time))).div(self.radius);
             //rec.set_face_normal(&r, &(outward_normal));
-            let front_face = (r.dire.dot(&outward_normal.clone()) < 0.0);
+            let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
             //let mat_ptr = self.mat_ptr.clone();
             let mut flag = 1.0;
             if !front_face {

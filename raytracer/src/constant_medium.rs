@@ -1,12 +1,12 @@
 use crate::aabb::Aabb;
 use crate::camera::random_double_0_1;
 use crate::matirial::{Iostropic, Iostropicstatic, Materialstatic};
-use crate::texture;
+
 use crate::texture::{SolidColorstatic, Texture, Texturestatic};
 use crate::Material;
-use crate::RAY;
+
+use crate::Vec3;
 use crate::RAY::{HitRecord, HitRecordstatic, Hittable, Hittablestatic, Ray};
-use crate::{rtweekend, Vec3};
 use std::f64::consts::E;
 use std::f64::INFINITY;
 use std::sync::Arc;

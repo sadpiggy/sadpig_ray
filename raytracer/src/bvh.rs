@@ -1,13 +1,13 @@
 use crate::aabb::Aabb;
 use crate::hittable_list::HittableListstatic;
-use crate::matirial::Lambertian;
+
 use crate::moving_sphere::MovingSphere;
-use crate::rtweekend;
+
 use crate::rtweekend::random_int_a_b;
 use crate::HittableList;
 use crate::Vec3;
 use crate::RAY;
-use crate::RAY::{HitRecordstatic, Hittablestatic, Ray, Spherestatic};
+use crate::RAY::{HitRecordstatic, Hittablestatic, Ray};
 use std::sync::Arc;
 use RAY::{HitRecord, Hittable, Sphere};
 
@@ -141,7 +141,7 @@ impl Hittable for BvhNode {
             hit_right = self.right.hit(r, t_min, t_max, rec);
         }
 
-        if (hit_left || hit_right) {
+        if hit_left || hit_right {
             return true;
         }
         //println!("2");
@@ -212,10 +212,10 @@ impl BvhNodestatic {
             //objects.sort_by(compare);
             objects.sort_by(|a, b| {
                 let mut out_put_box = a.bounding_box(time0, time1);
-                let pig1 = (out_put_box);
+                let pig1 = out_put_box;
                 let x = pig1.unwrap().minimum.get_xyz(axis); //可能会panic诶
                 let mut out_put_box2 = b.bounding_box(time0, time1);
-                let pig2 = (out_put_box2);
+                let pig2 = out_put_box2;
                 let y = pig2.unwrap().minimum.get_xyz(axis);
                 x.partial_cmp(&y).unwrap()
             });
