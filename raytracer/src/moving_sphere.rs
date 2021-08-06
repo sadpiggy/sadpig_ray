@@ -70,7 +70,7 @@ impl Hittable for MovingSphere {
         let a: f64 = r.dire.squared_length();
         let half_b: f64 = r.dire.dot(&oc);
         let c: f64 = oc.squared_length() - self.radius * self.radius;
-        let pan: f64 = half_b * half_b - a * c;
+        let pan: f64 = half_b.powf(2.0) - a * c;
         if pan < 0.0 {
             return false;
         };
@@ -197,19 +197,19 @@ impl<T: Materialstatic> MovingSpherestatic<T> {
 impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
         let oc: Vec3 = r.orig.sub(self.center(r.time));
-        let a: f64 = r.dire.squared_length();
+        let a_kun: f64 = r.dire.squared_length();
         let half_b: f64 = r.dire.dot(&oc);
-        let c: f64 = oc.squared_length() - self.radius * self.radius;
-        let pan: f64 = half_b * half_b - a * c;
+        let c_kun: f64 = oc.squared_length() - self.radius * self.radius;
+        let pan: f64 = half_b * half_b - a_kun * c_kun;
         if pan < 0.0 {
             return None;
         };
 
         let root: f64 = pan.sqrt();
-        let t: f64 = (-half_b - root) / a;
-        if t > t_min && t < t_max {
+        let t_kun: f64 = (-half_b - root) / a_kun;
+        if t_kun > t_min && t_kun < t_max {
             //rec.t = t;
-            let p = r.at(t);
+            let p = r.at(t_kun);
             let outward_normal = (p.sub(self.center(r.time))).div(self.radius);
             //rec.set_face_normal(&r, &(outward_normal));
             let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
@@ -224,17 +224,17 @@ impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
             return Some(HitRecordstatic {
                 p,
                 normal: outward_normal.mul(flag),
-                t,
+                t: t_kun,
                 front_face,
                 mat_ptr: &self.mat_ptr,
                 u,
                 v,
             });
         }
-        let t: f64 = (-half_b + root) / a;
-        if t > t_min && t < t_max {
+        let t_kun: f64 = (-half_b + root) / a_kun;
+        if t_kun > t_min && t_kun < t_max {
             //rec.t = t;
-            let p = r.at(t);
+            let p = r.at(t_kun);
             let outward_normal = (p.sub(self.center(r.time))).div(self.radius);
             //rec.set_face_normal(&r, &(outward_normal));
             let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
@@ -249,7 +249,7 @@ impl<T: Materialstatic> Hittablestatic for MovingSpherestatic<T> {
             return Some(HitRecordstatic {
                 p,
                 normal: outward_normal.mul(flag),
-                t,
+                t: t_kun,
                 front_face,
                 mat_ptr: &self.mat_ptr,
                 u,

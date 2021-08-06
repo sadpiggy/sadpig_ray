@@ -3,8 +3,8 @@ use crate::matirial::clamp;
 use crate::perlin::Perlin;
 
 use crate::Vec3;
-use image::{DynamicImage, GenericImageView};
-use imageproc::drawing::Canvas;
+use image::DynamicImage;
+
 use std::ops::{Add, Mul};
 use std::sync::Arc;
 
@@ -291,16 +291,16 @@ impl Texture for ImageTexturestatic {
     fn value(&self, u: f64, v: f64, p: &Vec3) -> Vec3 {
         let u_mid = clamp(u, 0.0, 1.0);
         let v_mid = 1.0 - clamp(v, 0.0, 1.0);
-        let mut i = (u_mid * (self.width as f64)) as u32;
-        if i >= self.width {
-            i = (self.width) - 1;
+        let mut i_mid = (u_mid * (self.width as f64)) as u32;
+        if i_mid >= self.width {
+            i_mid = (self.width) - 1;
         }
-        let mut j = (v_mid * (self.height as f64)) as u32;
-        if j >= self.height {
-            j = (self.height) - 1;
+        let mut j_mid = (v_mid * (self.height as f64)) as u32;
+        if j_mid >= self.height {
+            j_mid = (self.height) - 1;
         }
 
-        let pixel_ = image::GenericImageView::get_pixel(&(self.data), i, j);
+        let pixel_ = image::GenericImageView::get_pixel(&(self.data), i_mid, j_mid);
         //println!("{}", pixel_[0]);
         Vec3::new(
             pixel_[0] as f64 / 255.0,

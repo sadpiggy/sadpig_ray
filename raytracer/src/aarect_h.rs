@@ -251,20 +251,20 @@ impl<T: Materialstatic> XyRectstatic<T> {
 
 impl<T: Materialstatic> Hittablestatic for XyRectstatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
-        let t = (self.k - r.orig.z) / (r.dire.z);
-        if t < t_min || t > t_max {
+        let t_kun = (self.k - r.orig.z) / (r.dire.z);
+        if t_kun < t_min || t_kun > t_max {
             return None;
         }
-        let x = r.orig.x + t * r.dire.x;
-        let y = r.orig.y + t * r.dire.y;
-        if x < self.x0 || x > self.x1 || y < self.y0 || y > self.y1 {
+        let x_kun = r.orig.x + t_kun * r.dire.x;
+        let y_kun = r.orig.y + t_kun * r.dire.y;
+        if x_kun < self.x0 || x_kun > self.x1 || y_kun < self.y0 || y_kun > self.y1 {
             return None;
         }
-        let u = (x - self.x0) / (self.x1 - self.x0);
-        let v = (y - self.y0) / (self.y1 - self.y0);
+        let u = (x_kun - self.x0) / (self.x1 - self.x0);
+        let v = (y_kun - self.y0) / (self.y1 - self.y0);
         //rec.t = t;
         let outward_normal = Vec3::new(0.0, 0.0, 1.0);
-        let p = r.at(t);
+        let p_kun = r.at(t_kun);
         //rec.set_face_normal(r, &outward_normal);
         let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
@@ -273,9 +273,9 @@ impl<T: Materialstatic> Hittablestatic for XyRectstatic<T> {
         }
         let mat_ptr = &self.mp;
         Some(HitRecordstatic {
-            p,
+            p: p_kun,
             normal: outward_normal.mul(flag),
-            t,
+            t: t_kun,
             front_face,
             mat_ptr,
             u,
@@ -337,19 +337,19 @@ impl<T: Materialstatic> XzRectstatic<T> {
 
 impl<T: Materialstatic> Hittablestatic for XzRectstatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
-        let t = (self.k - r.orig.y) / (r.dire.y);
-        if t < t_min || t > t_max {
+        let t_kun = (self.k - r.orig.y) / (r.dire.y);
+        if t_kun < t_min || t_kun > t_max {
             return None;
         }
-        let x = r.orig.x + t * r.dire.x;
-        let z = r.orig.z + t * r.dire.z;
-        if x < self.x0 || x > self.x1 || z < self.z0 || z > self.z1 {
+        let x_kun = r.orig.x + t_kun * r.dire.x;
+        let z_kun = r.orig.z + t_kun * r.dire.z;
+        if x_kun < self.x0 || x_kun > self.x1 || z_kun < self.z0 || z_kun > self.z1 {
             return None;
         }
-        let u = (x - self.x0) / (self.x1 - self.x0);
-        let v = (z - self.z0) / (self.z1 - self.z0);
+        let u = (x_kun - self.x0) / (self.x1 - self.x0);
+        let v = (z_kun - self.z0) / (self.z1 - self.z0);
         let outward_normal = Vec3::new(0.0, 1.0, 0.0);
-        let p = r.at(t);
+        let p_kun = r.at(t_kun);
         //rec.set_face_normal(r, &outward_normal);
         let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
         let mut flag = -1.0;
@@ -358,9 +358,9 @@ impl<T: Materialstatic> Hittablestatic for XzRectstatic<T> {
         }
         let mat_ptr = &self.mp;
         Some(HitRecordstatic {
-            p,
+            p: p_kun,
             normal: outward_normal.mul(flag),
-            t,
+            t: t_kun,
             front_face,
             mat_ptr,
             u,
@@ -500,18 +500,18 @@ impl<T: Materialstatic> Hittablestatic for Trianglestatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
         let direct1 = self.p1 - self.p0;
         let direct2 = self.p2 - self.p0;
-        let n = Vec3::unit_vector(&direct1.cross(&direct2));
+        let n_kun = Vec3::unit_vector(&direct1.cross(&direct2));
         let b_a = self.p0 - r.orig;
-        let t = n.dot(&b_a) / n.dot(&r.dire);
-        if t < t_min || t > t_max {
+        let t_kun = n_kun.dot(&b_a) / n_kun.dot(&r.dire);
+        if t_kun < t_min || t_kun > t_max {
             return None;
         }
-        let r_ = r.at(t);
+        let r_ = r.at(t_kun);
         if Vec3::sameside(self.p0, self.p1, self.p2, r_)
             && Vec3::sameside(self.p1, self.p2, self.p0, r_)
             && Vec3::sameside(self.p2, self.p0, self.p1, r_)
         {
-            let outward_normal = n;
+            let outward_normal = n_kun;
             let front_face = r.dire.dot(&outward_normal.clone()) < 0.0;
             let mut flag = 1.0;
             if !front_face {
@@ -519,8 +519,8 @@ impl<T: Materialstatic> Hittablestatic for Trianglestatic<T> {
             }
             let v_ab = self.p1 - self.p0;
             let v_bc = self.p2 - self.p1;
-            let v_ap = r.at(t) - self.p0;
-            let v_bp = r.at(t) - self.p1;
+            let v_ap = r.at(t_kun) - self.p0;
+            let v_bp = r.at(t_kun) - self.p1;
 
             let mut u = 0.0;
             let mut v = 0.0;
@@ -529,10 +529,10 @@ impl<T: Materialstatic> Hittablestatic for Trianglestatic<T> {
             // println!("{}", flag);
 
             return Some(HitRecordstatic {
-                p: r.at(t),
+                p: r.at(t_kun),
                 normal: outward_normal.mul(flag), //todo
-                t,
-                front_face: front_face,
+                t: t_kun,
+                front_face,
                 mat_ptr: &(self.mat_ptr),
                 u,
                 v,

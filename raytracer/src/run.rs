@@ -16,8 +16,7 @@ use crate::aarect_h::XzRectstatic;
 use crate::texture::SolidColorstatic;
 use crate::Vec3;
 
-use std::f64::consts::PI;
-use std::ops::{Add, AddAssign};
+use std::ops::AddAssign;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 
@@ -360,7 +359,7 @@ pub fn Runstatic() {
                 radius: 90.0,
                 mat_ptr: Lambertianstatic::<SolidColorstatic>::new_zero(),
             }));
-            let lights = (motherfuck);
+            let lights = motherfuck;
             // let lights = (Spherestatic {
             //     center: Vec3::new(190.0, 90.0, 190.0),
             //     radius: 90.0,

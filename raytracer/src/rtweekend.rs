@@ -25,7 +25,6 @@ use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
 
 use std::sync::Arc;
-use tobj;
 
 pub fn degrees_to_radians(degrees: f64) -> f64 {
     degrees * PI / 180.0
@@ -138,26 +137,24 @@ pub fn random_secne() -> HittableList {
                         radius: 0.2,
                         mat_ptr: sphere_material,
                     }));
+                } else if choose_mat < 0.95 {
+                    //metal
+                    let albedo = Vec3::random_v_a_b(0.5, 1.0);
+                    let fuzz = random_double_a_b(0.0, 0.5);
+                    sphere_material = Arc::new(Metal::new(&albedo, fuzz));
+                    world.add(Arc::new(Sphere {
+                        center: center_,
+                        radius: 0.2,
+                        mat_ptr: sphere_material,
+                    }));
                 } else {
-                    if choose_mat < 0.95 {
-                        //metal
-                        let albedo = Vec3::random_v_a_b(0.5, 1.0);
-                        let fuzz = random_double_a_b(0.0, 0.5);
-                        sphere_material = Arc::new(Metal::new(&albedo, fuzz));
-                        world.add(Arc::new(Sphere {
-                            center: center_,
-                            radius: 0.2,
-                            mat_ptr: sphere_material,
-                        }));
-                    } else {
-                        //glass
-                        sphere_material = Arc::new(Dielectric::new(1.5));
-                        world.add(Arc::new(Sphere {
-                            center: center_,
-                            radius: 0.2,
-                            mat_ptr: sphere_material,
-                        }));
-                    }
+                    //glass
+                    sphere_material = Arc::new(Dielectric::new(1.5));
+                    world.add(Arc::new(Sphere {
+                        center: center_,
+                        radius: 0.2,
+                        mat_ptr: sphere_material,
+                    }));
                 }
             }
         }
