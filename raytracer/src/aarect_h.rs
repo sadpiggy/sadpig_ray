@@ -443,11 +443,11 @@ impl<T: Materialstatic> Hittablestatic for YzRectstatic<T> {
         Some(HitRecordstatic {
             p,
             normal: outward_normal.mul(flag),
-            t:t_kun,
+            t: t_kun,
             front_face,
             mat_ptr,
-            u:u_kun,
-            v:v_kun,
+            u: u_kun,
+            v: v_kun,
         })
     }
 
