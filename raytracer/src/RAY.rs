@@ -235,7 +235,7 @@ impl Hittable for Sphere {
         let a: f64 = r.dire.squared_length();
         let half_b: f64 = r.dire.dot(&oc);
         let c: f64 = oc.squared_length() - self.radius * self.radius;
-        let pan: f64 = half_b * half_b - a * c;
+        let pan: f64 = half_b.powf(2.0) - a * c;
         if pan <= 0.0 {
             return false;
         };
@@ -610,19 +610,19 @@ pub fn get_sphere_uv(p: &Vec3, u: &mut f64, v: &mut f64) {
 impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecordstatic> {
         let oc: Vec3 = r.orig.sub(self.center);
-        let a: f64 = r.dire.squared_length();
+        let a_kun: f64 = r.dire.squared_length();
         let half_b: f64 = r.dire.dot(&oc);
-        let c: f64 = oc.squared_length() - self.radius * self.radius;
-        let pan: f64 = half_b * half_b - a * c;
+        let c_kun: f64 = oc.squared_length() - self.radius * self.radius;
+        let pan: f64 = half_b * half_b - a_kun * c_kun;
         if pan <= 0.0 {
             return None;
         };
         let root: f64 = pan.sqrt();
-        let t: f64 = (-half_b - root) / a;
-        if t > t_min && t < t_max {
+        let t_kun: f64 = (-half_b - root) / a_kun;
+        if t_kun > t_min && t_kun < t_max {
             //rec.t = t;
-            let p = r.at(t);
-            let outward_normal_ = &((p.sub(self.center.clone())).div(self.radius));
+            let p_kun = r.at(t_kun);
+            let outward_normal_ = &((p_kun.sub(self.center.clone())).div(self.radius));
             //rec.set_face_normal(&r, &outward_normal_);
             let mut u = 0.0;
             let mut v = 0.0;
@@ -633,19 +633,19 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
                 flag = -1.0;
             }
             return Option::from(HitRecordstatic {
-                p,
+                p: p_kun,
                 normal: outward_normal_.mul(flag),
-                t,
+                t: t_kun,
                 front_face,
                 mat_ptr: &(self.mat_ptr),
                 u,
                 v,
             });
         }
-        let t: f64 = (-half_b + root) / a;
-        if t > t_min && t < t_max {
-            let p = r.at(t);
-            let outward_normal_ = &((p.sub(self.center.clone())).div(self.radius));
+        let t_kun: f64 = (-half_b + root) / a_kun;
+        if t_kun > t_min && t_kun < t_max {
+            let p_kun = r.at(t_kun);
+            let outward_normal_ = &((p_kun.sub(self.center.clone())).div(self.radius));
             //rec.set_face_normal(&r, &outward_normal_);
             let mut u = 0.0;
             let mut v = 0.0;
@@ -656,9 +656,9 @@ impl<T: Materialstatic> Hittablestatic for Spherestatic<T> {
                 flag = -1.0;
             }
             return Option::from(HitRecordstatic {
-                p,
+                p: p_kun,
                 normal: outward_normal_.mul(flag),
-                t,
+                t: t_kun,
                 front_face,
                 mat_ptr: &(self.mat_ptr),
                 u,

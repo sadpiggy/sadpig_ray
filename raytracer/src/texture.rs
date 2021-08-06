@@ -1,11 +1,9 @@
-use crate::hittable_list;
-use crate::matirial;
 use crate::matirial::clamp;
-use crate::perlin;
+
 use crate::perlin::Perlin;
-use crate::RAY::{HitRecord, Material, Ray};
-use crate::{rtweekend, Vec3};
-use image::{DynamicImage, GenericImageView, ImageBuffer, Primitive, Rgb, RgbImage};
+
+use crate::Vec3;
+use image::{DynamicImage, GenericImageView};
 use imageproc::drawing::Canvas;
 use std::ops::{Add, Mul};
 use std::sync::Arc;

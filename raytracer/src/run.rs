@@ -1,26 +1,26 @@
-use crate::camera::{random_double_0_1, random_double_a_b, Camera};
+use crate::camera::{random_double_0_1, Camera};
 use crate::hittable_list::{HittableList, HittableListstatic};
-use crate::matirial::{Dielectric, Lambertian, Lambertianstatic, Material, Metal};
+use crate::matirial::{Lambertian, Lambertianstatic};
 use crate::rtweekend::{
-    clamp, cornell_box, cornell_box_static, cornell_smoke, cornell_table_static, dinosaur_static,
-    earth, final_scene, final_scene_static, get_obj, get_obj_test, my_scene_static, random_secne,
-    simple_light, two_perlin_spheres, two_spheres, two_spheres_static,
+    cornell_box, cornell_box_static, cornell_smoke, cornell_table_static, dinosaur_static, earth,
+    final_scene, final_scene_static, get_obj_test, my_scene_static, random_secne, simple_light,
+    two_perlin_spheres, two_spheres, two_spheres_static,
 };
-use crate::RAY::{Hittable, Hittablestatic, Sphere, Spherestatic};
-use core::fmt::Alignment::Center;
+use crate::RAY::{Hittable, Sphere, Spherestatic};
+
 use image::{ImageBuffer, RgbImage};
 use indicatif::ProgressBar;
 //pub use ray::Ray;
-use crate::aabb::Aabb;
-use crate::aarect_h::{XzRect, XzRectstatic};
+
+use crate::aarect_h::XzRectstatic;
 use crate::texture::SolidColorstatic;
 use crate::Vec3;
-use image::imageops::FilterType::Lanczos3;
+
 use std::f64::consts::PI;
-use std::ops::{Add, AddAssign, Div, Mul, Sub};
+use std::ops::{Add, AddAssign};
 use std::sync::mpsc::channel;
 use std::sync::Arc;
-use std::vec::Vec;
+
 use threadpool::ThreadPool;
 
 pub fn Run() {
@@ -31,7 +31,7 @@ pub fn Run() {
     let samples_per_pixels: u32 = 20;
     let max_depth = 10;
     //world
-    let R = (PI / 4.0).cos();
+    //let R = (PI / 4.0).cos();
 
     let mut world: HittableList = HittableList::new_zero(); // HittableList { objects: vec![] };
 
@@ -226,7 +226,7 @@ pub fn Runstatic() {
     let samples_per_pixels: u32 = 10;
     let max_depth = 5;
     //world
-    let R = (PI / 4.0).cos();
+    //let R = (PI / 4.0).cos();
 
     let mut world: HittableListstatic = HittableListstatic::new_zero(); // HittableList { objects: vec![] };
 
@@ -347,7 +347,7 @@ pub fn Runstatic() {
                     227.0,
                     332.0,
                     554.0,
-                    (Lambertianstatic::<SolidColorstatic>::new_zero()),
+                    Lambertianstatic::<SolidColorstatic>::new_zero(),
                 ),
             ));
             // motherfuck.add(Arc::new(Spherestatic {
@@ -358,7 +358,7 @@ pub fn Runstatic() {
             motherfuck.add(Arc::new(Spherestatic {
                 center: Vec3::new(278.0, 278.0, 0.0),
                 radius: 90.0,
-                mat_ptr: (Lambertianstatic::<SolidColorstatic>::new_zero()),
+                mat_ptr: Lambertianstatic::<SolidColorstatic>::new_zero(),
             }));
             let lights = (motherfuck);
             // let lights = (Spherestatic {

@@ -1,7 +1,7 @@
 use crate::camera::{random_double_0_1, random_double_a_b};
 use crate::rtweekend::clamp;
 use std::f32::consts::PI;
-use std::num;
+
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Clone, Debug, PartialEq, Copy)]
@@ -257,7 +257,7 @@ impl Vec3 {
             y: 0.0,
             z: 0.0,
         };
-        while true {
+        loop {
             let q = Vec3::new(
                 random_double_a_b(-1.0, 1.0),
                 random_double_a_b(-1.0, 1.0),
