@@ -223,8 +223,8 @@ pub fn Runstatic() {
     let mut image_width: u32 = 1200;
     let mut image_height: u32 = (((image_width) as f64) / aspect_ratio_) as u32;
     //渲染质量
-    let mut samples_per_pixels: u32 = 100;
-    let max_depth = 50;
+    let mut samples_per_pixels: u32 = 10;
+    let max_depth = 5;
     //world
     let R = (PI / 4.0).cos();
 
@@ -236,7 +236,7 @@ pub fn Runstatic() {
     let mut look_at_: Vec3 = Vec3::zero(); // = (Vec3::new(0.0, 0.0, 0.0));
     let mut background = Vec3::new(0.93, 0.93, 0.93);
 
-    let mut case = 6;
+    let mut case = 0;
 
     if case == 0 {
         world = two_spheres_static();
