@@ -1,9 +1,8 @@
 use crate::camera::random_double_0_1;
 use crate::onb::Onb;
 
-use crate::RAY;
+use crate::Vec3;
 use crate::RAY::{Hittable, Hittablestatic, Sphere};
-use crate::{rtweekend, Vec3};
 use std::f64::consts::PI;
 use std::sync::Arc;
 

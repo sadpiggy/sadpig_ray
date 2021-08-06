@@ -5,8 +5,8 @@ use crate::bvh::{BvhNode, BvhNodestatic};
 use crate::constant_medium::{ConstantMedium, ConstantMediumstatic};
 use crate::hittable_list::HittableListstatic;
 use crate::matirial::{
-    Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Iostropicstatic,
-    Lambertian, Lambertianstatic, Material, Materialstatic, Metal, Metalstatic,
+    Dielectric, Dielectricstatic, DiffuseLight, DiffuseLightstatic, HittableList, Lambertian,
+    Lambertianstatic, Material, Metal, Metalstatic,
 };
 use crate::moving_sphere::{MovingSphere, MovingSpherestatic};
 use crate::texture::{
@@ -16,14 +16,14 @@ use crate::texture::{
 use crate::Vec3;
 use crate::BOX_H::{Hezi, Hezistatic};
 use crate::RAY::{
-    FlipFace, FlipFacestatic, HitRecordstatic, Hittable, Hittablestatic, RotateXstatic, RotateY,
-    RotateYstatic, Sphere, Spherestatic, Translate, Translatestatic,
+    FlipFace, FlipFacestatic, Hittable, Hittablestatic, RotateY, RotateYstatic, Sphere,
+    Spherestatic, Translate, Translatestatic,
 };
 use rand::Rng;
-use std::collections::hash_map::Entry::Vacant;
+
 use std::f64::consts::PI;
 use std::ops::{Add, Mul, Sub};
-use std::sync::atomic::Ordering::AcqRel;
+
 use std::sync::Arc;
 use tobj;
 
@@ -515,10 +515,10 @@ pub fn final_scene() -> HittableList {
 
 pub fn two_spheres_static() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
-    let checker = (CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
+    let checker = CheckerTexturestatic::<SolidColorstatic, SolidColorstatic>::new2(
         Vec3::new(0.2, 0.3, 0.1),
         Vec3::new(0.9, 0.9, 0.9),
-    ));
+    );
 
     //let pertext = Arc::new(NoiseTexture::new());
 
@@ -541,13 +541,13 @@ pub fn two_spheres_static() -> HittableListstatic {
 
 pub fn cornell_box_static() -> HittableListstatic {
     let mut objects: HittableListstatic = HittableListstatic::new_zero();
-    let red = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05))));
-    let white = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white1 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white2 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let white3 = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73))));
-    let green = (Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15))));
-    let light = (DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0)));
+    let red = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.65, 0.05, 0.05)));
+    let white = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let white1 = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let white2 = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let white3 = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.73, 0.73, 0.73)));
+    let green = Lambertianstatic::<SolidColorstatic>::new(&(Vec3::new(0.12, 0.45, 0.15)));
+    let light = DiffuseLightstatic::<SolidColorstatic>::new2(Vec3::new(15.0, 15.0, 15.0));
     objects.add(Arc::new(YzRectstatic::new(
         0.0, 555.0, 0.0, 555.0, 555.0, green,
     )));

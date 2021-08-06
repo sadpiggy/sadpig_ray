@@ -25,11 +25,11 @@ impl Aabb {
 impl Aabb {
     pub fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> bool {
         for a in 0..3 {
-            let invD = 1.0 / r.dire.get_xyz(a);
-            let mut t0 = (self.minimum.get_xyz(a) - r.orig.get_xyz(a)) * invD;
-            let mut t1 = (self.maximum.get_xyz(a) - r.orig.get_xyz(a)) * invD;
+            let inv_d = 1.0 / r.dire.get_xyz(a);
+            let mut t0 = (self.minimum.get_xyz(a) - r.orig.get_xyz(a)) * inv_d;
+            let mut t1 = (self.maximum.get_xyz(a) - r.orig.get_xyz(a)) * inv_d;
 
-            if invD < 0.0 {
+            if inv_d < 0.0 {
                 let mut mid = t0;
                 t0 = t1;
                 t1 = mid;

@@ -1,12 +1,9 @@
-use crate::camera::random_double_0_1;
 use crate::rtweekend::random_int_a_b;
-use crate::{rtweekend, Vec3};
-use image::{ImageBuffer, RgbImage};
-use indicatif::ProgressBar;
+use crate::Vec3;
+
 use std::ops::Mul;
-use std::thread::sleep;
+
 //pub use ray::Ray;
-use image::imageops::FilterType::Lanczos3;
 
 pub struct Perlin {
     pub point_count: u32,
