@@ -148,9 +148,9 @@ Bonus tracks：
 
 *- [ y] Track 1
 *- [ y] Track 2
-- [ ] Track 3
+*- [ ] Track 3
 *- [ y] Track 4
-- [ ] Track 5
+*- [ ] Track 5
 *- [y ] Track 6：没有benchmark
 *- [y ] Track 7
-  - [ ] 手写obj_loader
+*  - [ ] 手写obj_loader
